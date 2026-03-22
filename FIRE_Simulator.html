@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="FIRE">
+<title>FIRE Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0c0f1a;--bg2:#131827;--bg3:#1a2035;
+  --b1:#2a3350;--b2:#364060;
+  --t1:#e2e8f8;--t2:#8899bb;--t3:#566080;
+  --gr:#4ade80;--gd:#1a3a28;--gt:#86efac;
+  --rd:#f87171;--rdd:#3a1a1a;--rt:#fca5a5;
+  --am:#fbbf24;--ad:#3a2d10;--at:#fde68a;
+  --bl:#60a5fa;--bld:#1a2a45;
+  --te:#2dd4bf;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'Sora',sans-serif;
+  --nh:72px;
+  --sb:env(safe-area-inset-bottom,0px);
+  --st:env(safe-area-inset-top,0px);
+}
+html,body{height:100%;background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:15px;overflow:hidden}
+#app{height:100%;display:flex;flex-direction:column;padding-top:var(--st)}
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px 10px;border-bottom:1px solid var(--b1);flex-shrink:0}
+.logo{font-size:13px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--t2)}
+.logo span{color:var(--te)}
+#runbtn{background:var(--te);color:#000;border:none;border-radius:20px;padding:8px 18px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer}
+#runbtn:active{opacity:.7}
+#runbtn.off{background:var(--b2);color:var(--t3);pointer-events:none}
+.screens{flex:1;overflow:hidden;position:relative}
+.screen{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--nh) + var(--sb) + 16px);display:none}
+.screen.on{display:block}
+.sec{padding:16px 20px 0}
+.stit{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-bottom:10px}
+.card{background:var(--bg2);border:1px solid var(--b1);border-radius:14px;overflow:hidden;margin-bottom:10px}
+.row{display:flex;align-items:center;justify-content:space-between;min-height:44px;gap:8px;padding:0 16px;border-bottom:1px solid var(--b1)}
+.row:last-child{border-bottom:none}
+.rlbl{font-size:13px;color:var(--t2);flex:1;padding:8px 0}
+.rlbl small{display:block;font-size:11px;color:var(--t3);margin-top:1px}
+.rval{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--t1);text-align:right;white-space:nowrap;padding:8px 0;min-width:30px}
+input[type=range]{-webkit-appearance:none;width:110px;height:3px;background:var(--b2);border-radius:3px;outline:none;flex-shrink:0;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:var(--te);cursor:pointer;box-shadow:0 0 0 4px rgba(45,212,191,.15)}
+input[type=number]{background:var(--bg3);border:1px solid var(--b1);border-radius:8px;color:var(--t1);font-family:var(--mono);font-size:13px;padding:8px 10px;width:108px;text-align:right;outline:none;-webkit-appearance:none}
+input[type=number]:focus{border-color:var(--te)}
+.togwrap{display:flex;align-items:center;padding:10px 0}
+.togbtn{position:relative;width:48px;height:28px;flex-shrink:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.togbg{position:absolute;inset:0;background:var(--b2);border-radius:14px;transition:background .2s}
+.togbg.on{background:var(--te)}
+.togdot{position:absolute;top:4px;left:4px;width:20px;height:20px;background:#fff;border-radius:50%;transition:transform .2s}
+.togdot.on{transform:translateX(20px)}
+.seg{display:flex;background:var(--bg3);border-radius:10px;padding:3px;gap:2px}
+.sb{flex:1;padding:7px 4px;border:none;background:transparent;color:var(--t2);font-family:var(--sans);font-size:12px;font-weight:500;border-radius:8px;cursor:pointer;white-space:nowrap;text-align:center}
+.sb.on{background:var(--te);color:#000}
+.stabs{display:flex;gap:6px;padding:14px 20px 0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.stabs::-webkit-scrollbar{display:none}
+.stab{padding:7px 14px;border:1px solid var(--b1);border-radius:20px;background:transparent;color:var(--t2);font-family:var(--sans);font-size:12px;font-weight:500;white-space:nowrap;cursor:pointer;flex-shrink:0}
+.stab.on{background:var(--te);border-color:var(--te);color:#000}
+.stab.rs.on{background:var(--rd);border-color:var(--rd);color:#fff}
+.atabs{display:flex;gap:6px;padding:10px 20px 0}
+.atab{padding:6px 14px;border:1px solid var(--b1);border-radius:20px;background:transparent;color:var(--t2);font-family:var(--sans);font-size:12px;font-weight:500;cursor:pointer}
+.atab.on{background:var(--bld);border-color:var(--bl);color:var(--bl)}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 20px 0}
+.sc{background:var(--bg2);border:1px solid var(--b1);border-radius:12px;padding:13px 14px}
+.slb{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:5px}
+.sv{font-family:var(--mono);font-size:20px;font-weight:500}
+.sv.gr{color:var(--gr)}.sv.rd{color:var(--rd)}.sv.am{color:var(--am)}
+.ss{font-size:11px;color:var(--t3);margin-top:3px}
+.cw{position:relative;width:100%;height:255px;padding:14px 20px 0}
+.leg{display:flex;flex-wrap:wrap;gap:10px;padding:8px 20px 0;font-size:11px;color:var(--t2)}
+.li{display:flex;align-items:center;gap:5px}
+.ld{width:20px;height:3px;border-radius:2px}
+.stgt{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
+.stgt th{color:var(--t3);font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:4px 8px;border-bottom:1px solid var(--b1);font-weight:500;text-align:left}
+.stgt td{padding:5px 4px;border-bottom:1px solid var(--b1)}
+.stgt td input[type=number]{width:65px;font-size:12px;padding:4px 6px}
+.stgt .ylbl{font-family:var(--mono);font-size:11px;color:var(--t3);padding:5px 8px}
+.stgt .delbtn{background:transparent;border:none;color:var(--t3);font-size:18px;cursor:pointer;padding:2px 8px;line-height:1}
+.addyr{width:100%;margin-top:8px;padding:10px;background:transparent;border:1px dashed var(--b1);border-radius:8px;color:var(--t2);font-family:var(--sans);font-size:12px;cursor:pointer}
+.cmp{padding:14px 20px 0}
+.cmpt{font-size:10px;color:var(--t3);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.tbl{width:100%;border-collapse:collapse;font-size:11px;border:1px solid var(--b1);border-radius:10px;overflow:hidden}
+.tbl th{background:var(--bg3);color:var(--t3);font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:7px 8px;text-align:left;font-weight:500;border-bottom:1px solid var(--b1)}
+.tbl td{padding:7px 8px;border-bottom:1px solid var(--b1);color:var(--t1)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr.hl td{background:var(--bg3)}
+.badge{display:inline-block;padding:2px 6px;border-radius:4px;font-family:var(--mono);font-size:11px;font-weight:500}
+.bg{background:var(--gd);color:var(--gt)}.ba{background:var(--ad);color:var(--at)}.br{background:var(--rdd);color:var(--rt)}
+.empty{text-align:center;padding:70px 30px;color:var(--t3)}
+.empty .ic{font-size:44px;margin-bottom:14px}
+.empty p{font-size:14px;line-height:1.6}
+.pbar{height:2px;background:var(--b1)}
+.pfill{height:100%;background:var(--te);transition:width .3s;width:0%}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--b1);display:flex;padding-bottom:var(--sb);z-index:100}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:9px 0 7px;border:none;background:transparent;color:var(--t3);font-family:var(--sans);font-size:10px;font-weight:500;cursor:pointer;gap:4px;letter-spacing:.04em}
+.nb svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nb.on{color:var(--te)}
+.ov{position:fixed;inset:0;background:rgba(12,15,26,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:14px}
+.ov p{color:var(--t2);font-size:14px}
+.spin{width:34px;height:34px;border:3px solid var(--b2);border-top-color:var(--te);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sbadge{display:inline-flex;align-items:center;padding:5px 10px;border-radius:8px;font-size:11px;font-weight:600;margin-bottom:4px}
+.sbadge.st{background:var(--rdd);color:var(--rd)}
+.sbadge.ba{background:var(--bld);color:var(--bl)}
+.sbadge.cr{background:var(--ad);color:var(--am)}
+.sbadge.dp{background:rgba(124,58,237,.15);color:#a78bfa}
+.note{font-size:11px;color:var(--t3);padding:0 16px 12px;line-height:1.6}
+.gap{height:10px}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <div class="logo">FIRE <span>SIM</span></div>
+  <button id="runbtn" onclick="runAll()">Run simulation</button>
+</header>
+<div class="pbar"><div class="pfill" id="pf"></div></div>
+
+<div class="screens">
+
+<!-- ══ INPUTS ══════════════════════════════════════════════ -->
+<div class="screen on" id="sc-inputs">
+<div class="gap"></div>
+
+<div class="sec">
+  <div class="stit">Your profile</div>
+  <div class="card">
+    <div class="row">
+      <div class="rlbl">FIRE age<small>retire at this age</small></div>
+      <input type="range" id="sl-fa" min="40" max="65" step="1" value="49">
+      <div class="rval" id="vl-fa">49</div>
+    </div>
+    <div class="row">
+      <div class="rlbl">Portfolio value<small>liquid assets (ETF + cash)</small></div>
+      <input type="number" id="ni-pf" value="950000" step="10000">
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="stit">Allocation</div>
+  <div class="card">
+    <div class="row">
+      <div class="rlbl">ETF %<small>rest is cash at 0% nominal</small></div>
+      <input type="range" id="sl-ep" min="5" max="95" step="5" value="40">
+      <div class="rval" id="vl-ep" style="font-size:11px;min-width:115px">40% / 60% cash</div>
+    </div>
+    <div class="row">
+      <div class="rlbl" style="font-size:11px;color:var(--t3)">Runs 30 / 40 / 50% ETF — all shown in results.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="stit">Land — Sinaai</div>
+  <div class="card">
+    <div class="row">
+      <div class="rlbl">Land value</div>
+      <input type="number" id="ni-lv" value="400000" step="10000">
+    </div>
+    <div class="row">
+      <div class="rlbl">Appreciation<small>nominal %/yr base rate</small></div>
+      <input type="range" id="sl-la" min="1" max="10" step="0.5" value="4">
+      <div class="rval" id="vl-la">4%</div>
+    </div>
+    <div class="row">
+      <div class="rlbl">Sell trigger<small>liquid portfolio floor</small></div>
+      <input type="range" id="sl-lt" min="0" max="200000" step="5000" value="50000">
+      <div class="rval" id="vl-lt">€50k</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="stit">Cash flows</div>
+  <div class="card">
+    <div class="row">
+      <div class="rlbl">Annual expenses<small>inflation-indexed</small></div>
+      <input type="number" id="ni-ex" value="33000" step="1000">
+    </div>
+    <div class="row">
+      <div class="rlbl">State pension<small>net monthly</small></div>
+      <input type="number" id="ni-pe" value="2200" step="50">
+    </div>
+    <div class="row">
+      <div class="rlbl">Pension age</div>
+      <input type="range" id="sl-pa" min="60" max="72" step="1" value="67">
+      <div class="rval" id="vl-pa">67</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="stit">Part-time income before full retirement</div>
+  <div class="card">
+    <div class="row">
+      <div class="rlbl">Enable part-time income<small>tap to toggle on/off</small></div>
+      <div class="togbtn" id="pt-btn" onclick="togglePT()">
+        <div class="togbg" id="pt-bg"></div>
+        <div class="togdot" id="pt-dot"></div>
+      </div>
+    </div>
+    <div id="pt-fields" style="display:none">
+      <div class="row">
+        <div class="rlbl">Monthly net income<small>€ per month</small></div>
+        <input type="number" id="ni-pti" value="2200" step="100">
+      </div>
+      <div class="row">
+        <div class="rlbl">Duration<small>years of part-time work</small></div>
+        <input type="range" id="sl-pty" min="1" max="10" step="1" value="2">
+        <div class="rval" id="vl-pty">2 yr</div>
+      </div>
+      <div class="note">Only the net shortfall (expenses minus income) is drawn from the portfolio during part-time years.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="stit">Simulation</div>
+  <div class="card">
+    <div class="row">
+      <div class="rlbl">Paths (N)<small>more paths = slower but more accurate</small></div>
+      <div class="seg" style="width:165px">
+        <button class="sb" id="seg-n1" onclick="S.N=2000;segOn('seg-n1','seg-n2','seg-n3')">2,000</button>
+        <button class="sb on" id="seg-n2" onclick="S.N=5000;segOn('seg-n2','seg-n1','seg-n3')">5,000</button>
+        <button class="sb" id="seg-n3" onclick="S.N=10000;segOn('seg-n3','seg-n1','seg-n2')">10,000</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="gap"></div>
+</div>
+
+<!-- ══ SCENARIOS ════════════════════════════════════════════ -->
+<div class="screen" id="sc-scenarios">
+<div class="gap"></div>
+<div class="stabs" id="sc-tabs">
+  <button class="stab on" id="sct-base" onclick="showPanel('pbase');scenTabOn('sct-base')">Baseline</button>
+  <button class="stab" id="sct-crash" onclick="showPanel('pcrash');scenTabOn('sct-crash')">Early crash</button>
+  <button class="stab" id="sct-dep" onclick="showPanel('pdep');scenTabOn('sct-dep')">1929</button>
+  <button class="stab rs" id="sct-stag" onclick="showPanel('pstag');scenTabOn('sct-stag')">Stagflation + 1929</button>
+</div>
+
+<div id="pbase">
+  <div class="sec">
+    <div class="stit">Normal market parameters</div>
+    <div class="card">
+      <div class="row">
+        <div class="rlbl">ETF mean return<small>nominal annual</small></div>
+        <input type="range" id="sl-em" min="2" max="15" step="0.5" value="8">
+        <div class="rval" id="vl-em">8%</div>
+      </div>
+      <div class="row">
+        <div class="rlbl">ETF std deviation<small>volatility</small></div>
+        <input type="range" id="sl-es" min="5" max="32" step="1" value="16">
+        <div class="rval" id="vl-es">16%</div>
+      </div>
+      <div class="row">
+        <div class="rlbl">Inflation mean</div>
+        <input type="range" id="sl-im" min="0" max="8" step="0.25" value="2.5">
+        <div class="rval" id="vl-im">2.5%</div>
+      </div>
+      <div class="row">
+        <div class="rlbl">Inflation std dev</div>
+        <input type="range" id="sl-is" min="0" max="3" step="0.25" value="1">
+        <div class="rval" id="vl-is">1%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="pcrash" style="display:none">
+  <div class="sec">
+    <div class="stit">Early market crash</div>
+    <div class="card">
+      <div class="row">
+        <div class="rlbl">Year 1 ETF crash</div>
+        <input type="range" id="sl-c1" min="-75" max="-5" step="1" value="-40">
+        <div class="rval" id="vl-c1">-40%</div>
+      </div>
+      <div class="row">
+        <div class="rlbl">Year 2 ETF crash</div>
+        <input type="range" id="sl-c2" min="-55" max="0" step="1" value="-20">
+        <div class="rval" id="vl-c2">-20%</div>
+      </div>
+      <div class="note" style="padding:12px 16px">Normal baseline returns resume from year 3. Inflation unchanged throughout.</div>
+    </div>
+  </div>
+</div>
+
+<div id="pdep" style="display:none">
+  <div class="sec">
+    <div class="stit">1929 depression</div>
+    <div class="card">
+      <div class="row">
+        <div class="rlbl">Crash intensity<small>scales entire path ×</small></div>
+        <input type="range" id="sl-di" min="0.5" max="1.5" step="0.05" value="1">
+        <div class="rval" id="vl-di">100%</div>
+      </div>
+      <div style="background:var(--bg3);margin:0 16px 14px;border-radius:8px;padding:10px 12px">
+        <div class="stit" style="margin-bottom:6px">Default ETF path</div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;font-family:var(--mono);font-size:11px;text-align:center">
+          <div style="color:var(--t3)">Yr1</div><div style="color:var(--t3)">Yr2</div><div style="color:var(--t3)">Yr3</div><div style="color:var(--t3)">Yr4</div><div style="color:var(--t3)">Yr5</div>
+          <div style="color:var(--rd)">-49%</div><div style="color:var(--rd)">-38%</div><div style="color:var(--rd)">-28%</div><div style="color:var(--am)">-15%</div><div style="color:var(--am)">-6%</div>
+        </div>
+        <div style="font-size:11px;color:var(--t3);margin-top:8px">Mild deflation yrs 1–4. Slow 2–9%/yr recovery through yr 12.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="pstag" style="display:none">
+  <div class="sec">
+    <div class="stit" style="color:var(--rd)">Trump stagflation + 1929</div>
+    <div class="card">
+      <div class="note" style="padding:12px 16px 8px">Calibrated to Liberation Day crash (Apr 2025), Ukraine/Iran energy shock, Trump tariff CPI surge. Edit year-by-year below. Land gains +40% of each year's CPI on top of base rate.</div>
+      <div style="overflow-x:auto;padding:0 16px 14px">
+        <table class="stgt">
+          <thead><tr><th>Age</th><th>ETF %</th><th>CPI %</th><th></th></tr></thead>
+          <tbody id="stg-body"></tbody>
+        </table>
+        <button class="addyr" onclick="addSY()">+ Add year</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="gap"></div>
+</div>
+
+<!-- ══ RESULTS ══════════════════════════════════════════════ -->
+<div class="screen" id="sc-results">
+  <div id="r-empty" class="empty">
+    <div class="ic">📈</div>
+    <p>Run a simulation first<br>to see results here</p>
+  </div>
+  <div id="r-content" style="display:none">
+    <div id="scen-lbl" style="padding:14px 20px 0"></div>
+    <div class="sg">
+      <div class="sc"><div class="slb">Failure rate</div><div class="sv" id="rv-fr">—</div><div class="ss">before age 100</div></div>
+      <div class="sc"><div class="slb">10% fail by</div><div class="sv" id="rv-f10">—</div><div class="ss">first serious risk</div></div>
+      <div class="sc"><div class="slb">Median at 67</div><div class="sv" id="rv-p67">—</div><div class="ss">pension starts</div></div>
+      <div class="sc"><div class="slb">Median at 85</div><div class="sv" id="rv-p85">—</div><div class="ss">late retirement</div></div>
+    </div>
+    <div class="stabs" id="r-stabs" style="padding-top:12px">
+      <button class="stab on" id="rs-baseline" data-s="baseline" onclick="setRS(this)">Baseline</button>
+      <button class="stab" id="rs-early_crash" data-s="early_crash" onclick="setRS(this)">Early crash</button>
+      <button class="stab" id="rs-depression" data-s="depression" onclick="setRS(this)">1929</button>
+      <button class="stab rs" id="rs-stagflation" data-s="stagflation" onclick="setRS(this)">Stagflation</button>
+    </div>
+    <div class="atabs" id="r-atabs"></div>
+    <div class="cw"><canvas id="chart"></canvas></div>
+    <div class="leg">
+      <div class="li"><div class="ld" style="height:10px;background:rgba(96,165,250,.15);width:18px;border-radius:2px"></div><span>p10–p90</span></div>
+      <div class="li"><div class="ld" style="height:10px;background:rgba(96,165,250,.28);width:18px;border-radius:2px"></div><span>p25–p75</span></div>
+      <div class="li"><div class="ld" id="leg-mc" style="background:#60a5fa"></div><span>median</span></div>
+      <div class="li"><div class="ld" style="border-bottom:2px dashed #4ade80;background:transparent;width:18px"></div><span>pension</span></div>
+    </div>
+    <div class="cmp">
+      <div class="cmpt">All scenarios × allocations</div>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr><th>Scenario</th><th>Alloc</th><th>Fail%</th><th>Med@67</th><th>Med@85</th><th>Fail10%</th></tr></thead>
+          <tbody id="r-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="gap"></div><div class="gap"></div>
+  </div>
+</div>
+
+</div><!-- /screens -->
+
+<nav>
+  <button class="nb on" id="nav-inputs" onclick="goS('inputs','nav-inputs')">
+    <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    Inputs
+  </button>
+  <button class="nb" id="nav-scenarios" onclick="goS('scenarios','nav-scenarios')">
+    <svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg>
+    Scenarios
+  </button>
+  <button class="nb" id="nav-results" onclick="goS('results','nav-results')">
+    <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Results
+  </button>
+</nav>
+
+<div class="ov" id="ov" style="display:none">
+  <div class="spin"></div>
+  <p id="ov-msg">Running simulations…</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ── helpers ───────────────────────────────────────────────
+function g(x){return document.getElementById(x);}
+
+// ── state ─────────────────────────────────────────────────
+var S={
+  fireAge:49, portfolio:950000, etfPct:40,
+  landValue:400000, landApp:4, landTrigger:50000,
+  expenses:33000, pension:2200, pensionAge:67,
+  partTimeOn:false, partTimeIncome:2200, partTimeYears:2,
+  etfMean:8, etfStd:16, inflMean:2.5, inflStd:1,
+  crashY1:-40, crashY2:-20, depScale:1,
+  N:5000,
+  stagPath:[
+    {etr:-.15,inf:.04},{etr:-.32,inf:.06},{etr:-.28,inf:.08},
+    {etr:-.18,inf:.09},{etr:-.08,inf:.08},{etr:.04,inf:.07},
+    {etr:.03,inf:.06},{etr:.05,inf:.05},{etr:.07,inf:.04},
+    {etr:.07,inf:.035},{etr:.09,inf:.03},{etr:.09,inf:.028}
+  ],
+  results:null, curScen:'baseline', curAllocIdx:1
+};
+var ALLOCS=[.30,.40,.50];
+var ALLOCLBLS=['30% ETF','40% ETF','50% ETF'];
+var SCENKEYS=['baseline','early_crash','depression','stagflation'];
+var SCENLBLS={baseline:'Baseline',early_crash:'Early crash',depression:'1929 depression',stagflation:'Trump stagflation + 1929'};
+
+// ── nav ───────────────────────────────────────────────────
+function goS(name, btnId){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('on');});
+  g('sc-'+name).classList.add('on');
+  document.querySelectorAll('.nb').forEach(function(b){b.classList.remove('on');});
+  g(btnId).classList.add('on');
+}
+
+// ── toggle ────────────────────────────────────────────────
+function togglePT(){
+  S.partTimeOn = !S.partTimeOn;
+  g('pt-fields').style.display = S.partTimeOn ? 'block' : 'none';
+  g('pt-bg').className = 'togbg' + (S.partTimeOn ? ' on' : '');
+  g('pt-dot').className = 'togdot' + (S.partTimeOn ? ' on' : '');
+}
+
+// ── scenario panels ───────────────────────────────────────
+function showPanel(pid){
+  ['pbase','pcrash','pdep','pstag'].forEach(function(p){
+    var el=g(p); if(el) el.style.display='none';
+  });
+  var t=g(pid); if(t) t.style.display='block';
+}
+function scenTabOn(activeId){
+  ['sct-base','sct-crash','sct-dep','sct-stag'].forEach(function(id){
+    var el=g(id); if(el) el.classList.remove('on');
+  });
+  var a=g(activeId); if(a) a.classList.add('on');
+}
+
+// ── seg buttons ───────────────────────────────────────────
+function segOn(){
+  var ids=Array.prototype.slice.call(arguments);
+  var onId=ids[0];
+  ids.forEach(function(id){ var el=g(id); if(el) el.classList.remove('on'); });
+  var on=g(onId); if(on) on.classList.add('on');
+}
+
+// ── stagflation table ─────────────────────────────────────
+function renderST(){
+  var tb=g('stg-body'); if(!tb) return;
+  tb.innerHTML='';
+  S.stagPath.forEach(function(r,i){
+    var age=S.fireAge+i;
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td class="ylbl">'+age+'</td>'
+      +'<td><input type="number" value="'+(r.etr*100).toFixed(1)+'" step="0.5" style="width:65px;font-size:12px;padding:4px 6px" onchange="S.stagPath['+i+'].etr=+this.value/100"></td>'
+      +'<td><input type="number" value="'+(r.inf*100).toFixed(1)+'" step="0.5" style="width:65px;font-size:12px;padding:4px 6px" onchange="S.stagPath['+i+'].inf=+this.value/100"></td>'
+      +'<td><button class="delbtn" onclick="delSY('+i+')">×</button></td>';
+    tb.appendChild(tr);
+  });
+}
+function addSY(){
+  var l=S.stagPath[S.stagPath.length-1]||{etr:.08,inf:.025};
+  S.stagPath.push({etr:Math.min(.12,l.etr+.01),inf:Math.max(.025,l.inf-.005)});
+  renderST();
+}
+function delSY(i){
+  if(S.stagPath.length>2){S.stagPath.splice(i,1);renderST();}
+}
+
+// ── wire up all sliders ───────────────────────────────────
+function wireSliders(){
+  function sl(id, valId, fn, fmt){
+    var el=g(id); var vl=g(valId);
+    if(!el||!vl) return;
+    function update(){ vl.textContent=fmt(el.value); fn(+el.value); }
+    el.addEventListener('input', update);
+    el.addEventListener('change', update);
+  }
+  function ni(id, fn){
+    var el=g(id); if(!el) return;
+    el.addEventListener('input', function(){ fn(+this.value); });
+    el.addEventListener('change', function(){ fn(+this.value); });
+  }
+
+  // Inputs screen sliders
+  sl('sl-fa','vl-fa', function(v){S.fireAge=v; renderST();}, function(v){return v;});
+  sl('sl-ep','vl-ep', function(v){S.etfPct=v;}, function(v){return v+'% / '+(100-v)+'% cash';});
+  sl('sl-la','vl-la', function(v){S.landApp=v;}, function(v){return v+'%';});
+  sl('sl-lt','vl-lt', function(v){S.landTrigger=v;}, function(v){return '€'+Math.round(v/1000)+'k';});
+  sl('sl-pa','vl-pa', function(v){S.pensionAge=v;}, function(v){return v;});
+  sl('sl-pty','vl-pty', function(v){S.partTimeYears=v;}, function(v){return v+' yr';});
+
+  // Scenario sliders
+  sl('sl-em','vl-em', function(v){S.etfMean=v;}, function(v){return v+'%';});
+  sl('sl-es','vl-es', function(v){S.etfStd=v;}, function(v){return v+'%';});
+  sl('sl-im','vl-im', function(v){S.inflMean=v;}, function(v){return v+'%';});
+  sl('sl-is','vl-is', function(v){S.inflStd=v;}, function(v){return v+'%';});
+  sl('sl-c1','vl-c1', function(v){S.crashY1=v;}, function(v){return v+'%';});
+  sl('sl-c2','vl-c2', function(v){S.crashY2=v;}, function(v){return v+'%';});
+  sl('sl-di','vl-di', function(v){S.depScale=v;}, function(v){return Math.round(v*100)+'%';});
+
+  // Number inputs
+  ni('ni-pf', function(v){S.portfolio=v;});
+  ni('ni-lv', function(v){S.landValue=v;});
+  ni('ni-ex', function(v){S.expenses=v;});
+  ni('ni-pe', function(v){S.pension=v;});
+  ni('ni-pti', function(v){S.partTimeIncome=v;});
+}
+
+// ── simulation ────────────────────────────────────────────
+function rn(){var u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+
+function genPaths(scenario,N){
+  var depr=[-0.49,-0.38,-0.28,-0.15,-0.06,0.02,0.03,0.04,0.05,0.07].map(function(v){return v*S.depScale;});
+  var YRS=100-S.fireAge;
+  var paths=[];
+  for(var s=0;s<N;s++){
+    var p=[];
+    for(var y=0;y<YRS;y++){
+      var inf,er;
+      var em=S.etfMean/100,es=S.etfStd/100,im=S.inflMean/100,is=S.inflStd/100;
+      if(scenario==='stagflation'){
+        var sp=y<S.stagPath.length?S.stagPath[y]:null;
+        inf=sp?Math.max(-.02,sp.inf+rn()*.015):Math.max(-.01,im+rn()*is);
+        er=sp?sp.etr+rn()*.12:em+rn()*es;
+      } else if(scenario==='early_crash'){
+        inf=Math.max(-.01,im+rn()*is);
+        er=y===0?S.crashY1/100:y===1?S.crashY2/100:em+rn()*es;
+      } else if(scenario==='depression'){
+        inf=y<4?-.015+rn()*.015:Math.max(-.01,im+rn()*is);
+        er=y<depr.length?depr[y]+rn()*.04:em+rn()*es;
+      } else {
+        inf=Math.max(-.01,im+rn()*is);
+        er=em+rn()*es;
+      }
+      var stagInf=scenario==='stagflation'&&y<S.stagPath.length?S.stagPath[y].inf:inf;
+      p.push({inf:inf,er:er,stagInf:stagInf});
+    }
+    paths.push(p);
+  }
+  return paths;
+}
+
+function simPath(path,etfF){
+  var YRS=path.length;
+  var etf=S.portfolio*etfF, cash=S.portfolio*(1-etfF), ci=1;
+  var land=S.landValue, landSold=false;
+  var failed=false, failAge=null;
+  var pv=[S.portfolio+S.landValue];
+  var PY=S.pensionAge-S.fireAge;
+  var PTY=S.partTimeOn?S.partTimeYears:0;
+  for(var y=0;y<YRS;y++){
+    var sh=path[y];
+    ci*=1+sh.inf;
+    etf=Math.max(0,etf*(1+sh.er));
+    if(!landSold) land*=1+(S.landApp/100)+Math.max(0,sh.stagInf)*.4+rn()*.012;
+    var inc=S.partTimeOn&&y<PTY?S.partTimeIncome*12*ci:0;
+    var pen=y>=PY?S.pension*12*ci:0;
+    var wd=Math.max(0,S.expenses*ci-inc-pen);
+    var liq=etf+cash;
+    if(!landSold&&liq<S.landTrigger&&land>0){cash+=land;land=0;landSold=true;}
+    if(cash>=wd)cash-=wd;else{var gap=wd-cash;cash=0;etf=Math.max(0,etf-gap);}
+    var tot=(etf+cash)+(!landSold?land:0);
+    pv.push(Math.max(0,tot));
+    if(!failed&&(etf+cash)<=0){failed=true;failAge=S.fireAge+y+1;}
+  }
+  return{pv:pv,failed:failed,failAge:failAge};
+}
+
+function runScen(scenario,N){
+  var paths=genPaths(scenario,N);
+  var YRS=100-S.fireAge;
+  return ALLOCS.map(function(etfF){
+    var sims=paths.map(function(p){return simPath(p,etfF);});
+    var fc=sims.filter(function(r){return r.failed;}).length;
+    var fa=sims.filter(function(r){return r.failAge;}).map(function(r){return r.failAge;});
+    var pc=[];
+    for(var y=0;y<=YRS;y++){
+      var vals=sims.map(function(r){return r.pv[y]||0;}).sort(function(a,b){return a-b;});
+      var n=vals.length;
+      function pq(q){return Math.max(0,vals[Math.min(Math.floor(q*(n-1)),n-1)]);}
+      pc.push({age:S.fireAge+y,p10:pq(.1),p25:pq(.25),p50:pq(.5),p75:pq(.75),p90:pq(.9)});
+    }
+    var fab={};
+    sims.forEach(function(r){if(r.failAge)fab[r.failAge]=(fab[r.failAge]||0)+1;});
+    function ffa(q){var c=0;for(var a=S.fireAge;a<=100;a++){c+=fab[a]||0;if(c/N>=q)return a;}return null;}
+    var p67idx=Math.min(S.pensionAge-S.fireAge,YRS);
+    var p85idx=Math.min(85-S.fireAge,YRS);
+    return{etfF:etfF,fr:+(fc/N*100).toFixed(1),
+      afa:fa.length?Math.round(fa.reduce(function(a,b){return a+b;})/fa.length):null,
+      f10:ffa(.1),f25:ffa(.25),
+      p67:Math.round(pc[p67idx]?pc[p67idx].p50:0),
+      p85:Math.round(pc[p85idx]?pc[p85idx].p50:0),
+      pc:pc};
+  });
+}
+
+async function runAll(){
+  if(S._running) return;
+  S._running=true;
+  var btn=g('runbtn');
+  btn.textContent='Running…'; btn.classList.add('off');
+  g('ov').style.display='flex';
+  S.results={};
+  for(var i=0;i<SCENKEYS.length;i++){
+    var sc=SCENKEYS[i];
+    g('ov-msg').textContent=SCENLBLS[sc]+'… ('+(i+1)+'/4)';
+    g('pf').style.width=(i/4*100)+'%';
+    await new Promise(function(r){setTimeout(r,20);});
+    S.results[sc]=runScen(sc,S.N);
+  }
+  g('pf').style.width='100%';
+  S._running=false;
+  btn.textContent='Run simulation'; btn.classList.remove('off');
+  g('ov').style.display='none';
+  setTimeout(function(){g('pf').style.width='0%';},600);
+  drawResults();
+  goS('results','nav-results');
+}
+
+// ── results ───────────────────────────────────────────────
+var myChart=null;
+function fm(v){if(v==null||isNaN(v))return'—';if(v>=1e6)return'€'+(v/1e6).toFixed(2)+'M';if(v>=1e3)return'€'+Math.round(v/1e3)+'k';return'€'+Math.round(v);}
+function fbg(r){return'<span class="badge '+(r<10?'bg':r<30?'ba':'br')+'">'+r+'%</span>';}
+
+function setRS(btn){
+  S.curScen=btn.dataset.s;
+  document.querySelectorAll('#r-stabs .stab').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  drawResults();
+}
+
+function drawResults(){
+  if(!S.results) return;
+  g('r-empty').style.display='none';
+  g('r-content').style.display='block';
+
+  // alloc tabs
+  var at=g('r-atabs');
+  at.innerHTML=ALLOCLBLS.map(function(l,i){
+    return '<button class="atab'+(i===S.curAllocIdx?' on':'')+'" onclick="S.curAllocIdx='+i+';drawResults()">'+l+'</button>';
+  }).join('');
+
+  var sc=S.results[S.curScen];
+  var r=sc[S.curAllocIdx];
+
+  var fEl=g('rv-fr'); fEl.textContent=r.fr+'%'; fEl.className='sv '+(r.fr<10?'gr':r.fr<30?'am':'rd');
+  g('rv-f10').textContent=r.f10?'age '+r.f10:'> 100';
+  g('rv-p67').textContent=fm(r.p67);
+  g('rv-p85').textContent=fm(r.p85);
+
+  var bmap={baseline:'ba',early_crash:'cr',depression:'dp',stagflation:'st'};
+  g('scen-lbl').innerHTML='<div class="sbadge '+bmap[S.curScen]+'">'+SCENLBLS[S.curScen]+' · '+ALLOCLBLS[S.curAllocIdx]+'</div>';
+
+  var isStag=S.curScen==='stagflation';
+  var mc=isStag?'#f87171':'#60a5fa';
+  var ob=isStag?'rgba(248,113,113,.12)':'rgba(96,165,250,.12)';
+  var ib=isStag?'rgba(248,113,113,.26)':'rgba(96,165,250,.26)';
+  g('leg-mc').style.background=mc;
+
+  var ages=r.pc.map(function(p){return p.age;});
+  var ds=[
+    {data:r.pc.map(function(p){return p.p90;}),borderWidth:0,pointRadius:0,fill:'+1',backgroundColor:ob,tension:.12},
+    {data:r.pc.map(function(p){return p.p10;}),borderWidth:0,pointRadius:0,fill:false,tension:.12},
+    {data:r.pc.map(function(p){return p.p75;}),borderWidth:0,pointRadius:0,fill:'+1',backgroundColor:ib,tension:.12},
+    {data:r.pc.map(function(p){return p.p25;}),borderWidth:0,pointRadius:0,fill:false,tension:.12},
+    {label:'Median',data:r.pc.map(function(p){return p.p50;}),borderColor:mc,borderWidth:2.5,pointRadius:0,fill:false,tension:.12}
+  ];
+
+  var penPlugin={id:'pp',afterDraw:function(ch){
+    var sc=ch.scales.x; if(!sc) return;
+    var x=sc.getPixelForValue(S.pensionAge); if(!x||isNaN(x)) return;
+    var top=ch.chartArea.top,bottom=ch.chartArea.bottom,ctx=ch.ctx;
+    ctx.save(); ctx.strokeStyle='rgba(74,222,128,.55)'; ctx.setLineDash([4,3]); ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(x,top); ctx.lineTo(x,bottom); ctx.stroke();
+    ctx.fillStyle='rgba(74,222,128,.75)'; ctx.font='10px sans-serif'; ctx.fillText('pension',x+3,top+11);
+    ctx.restore();
+  }};
+
+  if(myChart) myChart.destroy();
+  myChart=new Chart(g('chart').getContext('2d'),{
+    type:'line', data:{labels:ages,datasets:ds},
+    options:{responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{callbacks:{
+        title:function(i){return'Age '+i[0].label;},
+        label:function(ctx){if(!ctx.dataset.label)return null;return' median: '+fm(ctx.parsed.y);}
+      }}},
+      scales:{
+        x:{ticks:{color:'#566080',font:{size:10},maxTicksLimit:11},grid:{color:'rgba(42,51,80,.7)'}},
+        y:{min:0,ticks:{color:'#566080',font:{size:10},callback:function(v){return v>=1e6?'€'+(v/1e6).toFixed(1)+'M':v>=1e3?'€'+v/1000+'k':'0';}},grid:{color:'rgba(42,51,80,.7)'}}
+      }
+    },plugins:[penPlugin]
+  });
+
+  var h='';
+  SCENKEYS.forEach(function(sc){
+    ALLOCS.forEach(function(a,i){
+      var r=S.results[sc][i];
+      var hl=sc===S.curScen&&i===S.curAllocIdx?' class="hl"':'';
+      h+='<tr'+hl+'>';
+      if(i===0) h+='<td rowspan="3" style="font-weight:600;vertical-align:middle'+(sc==='stagflation'?';color:var(--rd)':'')+'">'+SCENLBLS[sc]+'</td>';
+      h+='<td style="font-family:var(--mono);font-size:10px">'+ALLOCLBLS[i]+'</td>';
+      h+=('<td>'+fbg(r.fr)+'</td>');
+      h+=('<td style="font-family:var(--mono);font-size:10px">'+fm(r.p67)+'</td>');
+      h+=('<td style="font-family:var(--mono);font-size:10px">'+fm(r.p85)+'</td>');
+      h+=('<td style="font-family:var(--mono);font-size:10px">'+(r.f10?'age '+r.f10:'> 100')+'</td>');
+      h+='</tr>';
+    });
+  });
+  g('r-tbody').innerHTML=h;
+}
+
+// ── init ──────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', function(){
+  wireSliders();
+  renderST();
+});
+</script>
+</body>
+</html>
