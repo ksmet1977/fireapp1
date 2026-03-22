@@ -159,12 +159,44 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
   <div class="stit">Allocation</div>
   <div class="card">
     <div class="row">
-      <div class="rlbl">ETF %<small>rest is cash at 0% nominal</small></div>
-      <input type="range" id="sl-ep" min="5" max="95" step="5" value="40">
-      <div class="rval" id="vl-ep" style="font-size:11px;min-width:115px">40% / 60% cash</div>
+      <div class="rlbl">ETF %<small>IWDA / MSCI World</small></div>
+      <input type="range" id="sl-ep" min="0" max="100" step="5" value="40">
+      <div class="rval" id="vl-ep" style="font-size:12px;min-width:60px">40%</div>
     </div>
     <div class="row">
-      <div class="rlbl" style="font-size:11px;color:var(--t3)">This adds your value as a 4th allocation ★ alongside 30 / 40 / 50% ETF. Set it to 30, 40 or 50 to just run those three.</div>
+      <div class="rlbl">Bonds<small>tap to include in portfolio</small></div>
+      <div class="togbtn" id="bond-btn" onclick="toggleBonds()">
+        <div class="togbg" id="bond-bg"></div>
+        <div class="togdot" id="bond-dot"></div>
+      </div>
+    </div>
+    <div id="bond-fields" style="display:none">
+      <div class="row">
+        <div class="rlbl">Bond %<small>share of portfolio</small></div>
+        <input type="range" id="sl-bp" min="0" max="80" step="5" value="20">
+        <div class="rval" id="vl-bp">20%</div>
+      </div>
+      <div class="row">
+        <div class="rlbl">Bond mean return<small>nominal %/yr</small></div>
+        <input type="range" id="sl-bm" min="0" max="10" step="0.25" value="3.5">
+        <div class="rval" id="vl-bm">3.5%</div>
+      </div>
+      <div class="row">
+        <div class="rlbl">Bond std deviation<small>volatility</small></div>
+        <input type="range" id="sl-bs" min="1" max="20" step="0.5" value="6">
+        <div class="rval" id="vl-bs">6%</div>
+      </div>
+    </div>
+    <div class="row" id="alloc-summary">
+      <div class="rlbl" style="font-size:11px;color:var(--te)" id="alloc-breakdown">40% ETF · 60% cash</div>
+    </div>
+    <div class="row">
+      <div class="rlbl">Cash return<small>nominal %/yr, default 0%</small></div>
+      <input type="range" id="sl-cr" min="0" max="5" step="0.25" value="0">
+      <div class="rval" id="vl-cr">0%</div>
+    </div>
+    <div class="row">
+      <div class="rlbl" style="font-size:11px;color:var(--t3)">ETF % adds a custom allocation ★ alongside 30/40/50% anchors. Bonds and cash % adjust automatically.</div>
     </div>
   </div>
 </div>
@@ -509,6 +541,8 @@ function g(x){return document.getElementById(x);}
 // ── state ─────────────────────────────────────────────────
 var S={
   currentAge:49, fireAge:49, portfolio:950000, etfPct:40,
+  bondsOn:false, bondPct:20, bondMean:3.5, bondStd:6,
+  cashReturn:0,
   salary:4300,
   landValue:400000, landApp:4, landTrigger:50000,
   expenses:33000, pension:2200, pensionAge:67,
@@ -532,16 +566,20 @@ var SCENKEYS=['baseline','early_crash','depression','stagflation'];
 var SCENLBLS={baseline:'Baseline',early_crash:'Early crash',depression:'1929 depression',stagflation:'Stagflation + 1929'};
 
 function buildAllocs(){
-  // Always include 30/40/50 as anchors, plus the user's custom value if different
-  var custom=Math.round(S.etfPct);       // integer percent e.g. 45
+  var custom=Math.round(S.etfPct);
   var base=[30,40,50];
-  var isNew=base.indexOf(custom)===-1;   // true if e.g. 45, 25, 60...
+  var isNew=base.indexOf(custom)===-1;
   var percents=isNew?base.concat([custom]).sort(function(a,b){return a-b;}):base.slice();
   ALLOCS=percents.map(function(p){return p/100;});
   ALLOCLBLS=percents.map(function(p){
-    return p+'% ETF'+(isNew&&p===custom?' ★':'');
+    var ef=p/100;
+    var bf=getBondFrac(ef);
+    var cf=getCashPct(ef);
+    var lbl=p+'% ETF';
+    if(S.bondsOn) lbl+=' / '+Math.round(bf*100)+'% bonds / '+Math.round(cf*100)+'% cash';
+    if(isNew&&p===custom) lbl+=' ★';
+    return lbl;
   });
-  // Select the custom allocation by default
   var customIdx=percents.indexOf(custom);
   S.curAllocIdx=customIdx>=0?customIdx:1;
 }
@@ -630,7 +668,11 @@ function wireSliders(){
     if(S.fireAge<S.currentAge){S.currentAge=S.fireAge;g('sl-ca').value=S.currentAge;g('vl-ca').textContent=S.currentAge;}
     updatePreNote(); renderST(); renderEI();
   }, function(v){return v;});
-  sl('sl-ep','vl-ep', function(v){S.etfPct=v;}, function(v){return v+'% / '+(100-v)+'% cash';});
+  sl('sl-ep','vl-ep', function(v){S.etfPct=v; updateAllocSummary();}, function(v){return v+'%';});
+  sl('sl-bp','vl-bp', function(v){S.bondPct=v; updateAllocSummary();}, function(v){return v+'%';});
+  sl('sl-bm','vl-bm', function(v){S.bondMean=v;}, function(v){return v+'%';});
+  sl('sl-bs','vl-bs', function(v){S.bondStd=v;}, function(v){return v+'%';});
+  sl('sl-cr','vl-cr', function(v){S.cashReturn=v;}, function(v){return v+'%';});
   sl('sl-la','vl-la', function(v){S.landApp=v;}, function(v){return v+'%';});
   sl('sl-lt','vl-lt', function(v){S.landTrigger=v;}, function(v){return '€'+Math.round(v/1000)+'k';});
   sl('sl-pa','vl-pa', function(v){S.pensionAge=v;}, function(v){return v;});
@@ -710,8 +752,20 @@ function genPaths(scenario,N){
         inf=Math.max(-.01,im+rn()*is);
         er=em+rn()*es;
       }
-      var stagInf=scenario==='stagflation'&&t<S.stagPath.length?S.stagPath[t].inf:inf;
-      p.push({inf:inf,er:er,stagInf:stagInf,y:y});
+      // Bond return: during depression/crash bonds act as mild safe haven (negative correlation modelled)
+      var bm=S.bondMean/100, bs=S.bondStd/100;
+      var br;
+      if(scenario==='early_crash'){
+        br=t===0?0.04:t===1?0.03:bm+rn()*bs; // bonds rise slightly during equity crash
+      } else if(scenario==='depression'){
+        br=t<4?0.02+rn()*0.03:bm+rn()*bs; // mild positive during depression deflation
+      } else if(scenario==='stagflation'){
+        var sp2=t<S.stagPath.length?S.stagPath[t]:null;
+        br=sp2?(bm-sp2.inf*0.5)+rn()*bs:bm+rn()*bs; // bonds hurt by high inflation
+      } else {
+        br=bm+rn()*bs;
+      }
+      p.push({inf:inf,er:er,br:br,stagInf:stagInf,y:y});
     }
     paths.push(p);
   }
@@ -722,20 +776,27 @@ function simPath(pathData,etfF){
   var path=pathData.paths;
   var preYears=pathData.preYears;
   var postYears=pathData.postYears;
-  var etf=S.portfolio*etfF, cash=S.portfolio*(1-etfF), ci=1;
+  var bondF=getBondFrac(etfF);
+  var cashF=getCashPct(etfF);
+  var etf=S.portfolio*etfF;
+  var bonds=S.portfolio*bondF;
+  var cash=S.portfolio*cashF;
   var land=S.landValue, landSold=false;
   var failed=false, failAge=null;
-  // pv tracks post-retirement values only (index 0 = at retirement)
   var pv=[];
   var PY=S.pensionAge-S.fireAge;
+  var cr=S.cashReturn/100;
+  var ci=1;
 
   for(var t=0;t<path.length;t++){
     var sh=path[t];
-    var y=sh.y; // years since retirement (negative = pre-retirement)
+    var y=sh.y;
 
-    ci*=1+sh.inf;
     etf=Math.max(0,etf*(1+sh.er));
+    bonds=Math.max(0,bonds*(1+sh.br));
+    cash=cash*(1+cr);
     if(!landSold) land*=1+(S.landApp/100)+Math.max(0,sh.stagInf)*.4+rn()*.012;
+    ci*=1+sh.inf;
 
     var pen=y>=PY?S.pension*12*ci:0;
     var extraInc=0;
@@ -744,30 +805,30 @@ function simPath(pathData,etfF){
       if(y>=e.startYr&&y<e.startYr+e.duration) extraInc+=e.monthly*12*ci;
     }
 
-    if(y<0){
-      // Pre-retirement: salary covers expenses, net saving = salary + extra income - expenses
-      var salaryAnnual=S.salary*12*ci;
-      var net=salaryAnnual+extraInc-S.expenses*ci;
-      if(net>=0){
-        cash+=net; // net saving added to cash
-      } else {
-        // spending more than earning — draw shortfall from portfolio
-        var draw=-net;
-        if(cash>=draw) cash-=draw;
-        else{var gap2=draw-cash; cash=0; etf=Math.max(0,etf-gap2);}
-      }
-    } else {
-      // Post-retirement: normal withdrawal logic
-      var wd=Math.max(0,S.expenses*ci-pen-extraInc);
-      var liq=etf+cash;
-      if(!landSold&&liq<S.landTrigger&&land>0){cash+=land;land=0;landSold=true;}
-      if(cash>=wd)cash-=wd;else{var gap=wd-cash;cash=0;etf=Math.max(0,etf-gap);}
-      if(!failed&&(etf+cash)<=0){failed=true;failAge=S.fireAge+y+1;}
+    function drawFrom(amount){
+      // draw from cash first, then bonds, then ETF
+      if(cash>=amount){cash-=amount;return;}
+      amount-=cash; cash=0;
+      if(bonds>=amount){bonds-=amount;return;}
+      amount-=bonds; bonds=0;
+      etf=Math.max(0,etf-amount);
     }
 
-    // Record portfolio value at retirement onwards
-    if(y>=-1){ // include the value at retirement (after year -1 completes → start of retirement)
-      var tot=(etf+cash)+(!landSold?land:0);
+    if(y<0){
+      var salaryAnnual=S.salary*12*ci;
+      var net=salaryAnnual+extraInc-S.expenses*ci;
+      if(net>=0){ cash+=net; }
+      else{ drawFrom(-net); }
+    } else {
+      var wd=Math.max(0,S.expenses*ci-pen-extraInc);
+      var liq=etf+bonds+cash;
+      if(!landSold&&liq<S.landTrigger&&land>0){cash+=land;land=0;landSold=true;}
+      drawFrom(wd);
+      if(!failed&&(etf+bonds+cash)<=0){failed=true;failAge=S.fireAge+y+1;}
+    }
+
+    if(y>=-1){
+      var tot=(etf+bonds+cash)+(!landSold?land:0);
       pv.push(Math.max(0,tot));
     }
   }
@@ -926,7 +987,41 @@ function drawResults(){
   g('r-tbody').innerHTML=h;
 }
 
-// ── extra income streams ──────────────────────────────────
+// ── bonds toggle ─────────────────────────────────────────
+function toggleBonds(){
+  S.bondsOn=!S.bondsOn;
+  g('bond-fields').style.display=S.bondsOn?'block':'none';
+  g('bond-bg').className='togbg'+(S.bondsOn?' on':'');
+  g('bond-dot').className='togdot'+(S.bondsOn?' on':'');
+  updateAllocSummary();
+}
+
+function updateAllocSummary(){
+  var el=g('alloc-breakdown');
+  if(!el) return;
+  var etf=S.etfPct;
+  if(S.bondsOn){
+    var bond=S.bondPct;
+    // cap so etf+bond <= 100
+    if(etf+bond>100) bond=100-etf;
+    var cash=100-etf-bond;
+    el.textContent=etf+'% ETF · '+bond+'% bonds · '+cash+'% cash';
+  } else {
+    el.textContent=etf+'% ETF · '+(100-etf)+'% cash';
+  }
+}
+
+function getCashPct(etfPct){
+  if(!S.bondsOn) return 1-etfPct;
+  var bond=Math.min(S.bondPct/100, 1-etfPct);
+  return Math.max(0, 1-etfPct-bond);
+}
+function getBondFrac(etfPct){
+  if(!S.bondsOn) return 0;
+  return Math.min(S.bondPct/100, 1-etfPct);
+}
+
+
 function renderEI(){
   var list=g('ei-list');
   if(!list) return;
@@ -980,6 +1075,7 @@ window.addEventListener('DOMContentLoaded', function(){
   renderST();
   renderEI();
   updatePreNote();
+  updateAllocSummary();
 });
 </script>
 </body>
