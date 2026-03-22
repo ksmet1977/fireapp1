@@ -152,16 +152,16 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
       <div class="rval" id="vl-ep" style="font-size:11px;min-width:115px">40% / 60% cash</div>
     </div>
     <div class="row">
-      <div class="rlbl" style="font-size:11px;color:var(--t3)">Always runs 30 / 40 / 50% ETF. Your value above is added as a 4th allocation (★) if different.</div>
+      <div class="rlbl" style="font-size:11px;color:var(--t3)">This adds your value as a 4th allocation ★ alongside 30 / 40 / 50% ETF. Set it to 30, 40 or 50 to just run those three.</div>
     </div>
   </div>
 </div>
 
 <div class="sec">
-  <div class="stit">Land / RealEstate</div>
+  <div class="stit">Land / real estate</div>
   <div class="card">
     <div class="row">
-      <div class="rlbl">Land / estate value</div>
+      <div class="rlbl">Land value</div>
       <input type="number" id="ni-lv" value="400000" step="10000">
     </div>
     <div class="row">
@@ -197,10 +197,10 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
 </div>
 
 <div class="sec">
-  <div class="stit">Income before full retirement</div>
+  <div class="stit">Part-time income before full retirement</div>
   <div class="card">
     <div class="row">
-      <div class="rlbl">Enable pre-retirement income<small>tap to toggle on/off</small></div>
+      <div class="rlbl">Enable part-time income<small>tap to toggle on/off</small></div>
       <div class="togbtn" id="pt-btn" onclick="togglePT()">
         <div class="togbg" id="pt-bg"></div>
         <div class="togdot" id="pt-dot"></div>
@@ -231,6 +231,16 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
         <button class="sb on" id="seg-n2" onclick="S.N=5000;segOn('seg-n2','seg-n1','seg-n3')">5,000</button>
         <button class="sb" id="seg-n3" onclick="S.N=10000;segOn('seg-n3','seg-n1','seg-n2')">10,000</button>
       </div>
+    </div>
+    <div class="row">
+      <div class="rlbl">End age<small>simulate until this age</small></div>
+      <input type="range" id="sl-ea" min="70" max="110" step="1" value="100">
+      <div class="rval" id="vl-ea">100</div>
+    </div>
+    <div class="row">
+      <div class="rlbl">Failure threshold<small>used for "X% fail by age" stat</small></div>
+      <input type="range" id="sl-ft" min="1" max="50" step="1" value="10">
+      <div class="rval" id="vl-ft">10%</div>
     </div>
   </div>
 </div>
@@ -319,7 +329,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
   <div class="sec">
     <div class="stit" style="color:var(--rd)">Stagflation + 1929</div>
     <div class="card">
-      <div class="note" style="padding:12px 16px 8px">Calibrated to Liberation Day crash (Apr 2025), Ukraine/Iran energy shock, Trump tariff CPI surge. Edit year-by-year below. Land gains +40% of each year's CPI on top of base rate.</div>
+      <div class="note" style="padding:12px 16px 8px">Combines a depression-style equity crash with 1970s-style stagflation — high inflation and low/negative growth simultaneously. Edit year-by-year below. Land gains +40% of each year's CPI on top of base rate.</div>
       <div style="overflow-x:auto;padding:0 16px 14px">
         <table class="stgt">
           <thead><tr><th>Age</th><th>ETF %</th><th>CPI %</th><th></th></tr></thead>
@@ -343,8 +353,8 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
   <div id="r-content" style="display:none">
     <div id="scen-lbl" style="padding:14px 20px 0"></div>
     <div class="sg">
-      <div class="sc"><div class="slb">Failure rate</div><div class="sv" id="rv-fr">—</div><div class="ss">before age 100</div></div>
-      <div class="sc"><div class="slb">10% fail by</div><div class="sv" id="rv-f10">—</div><div class="ss">first serious risk</div></div>
+      <div class="sc"><div class="slb">Failure rate</div><div class="sv" id="rv-fr">—</div><div class="ss" id="rv-fr-sub">before end age</div></div>
+      <div class="sc"><div class="slb" id="rv-f10-lbl">10% fail by</div><div class="sv" id="rv-f10">—</div><div class="ss">failure threshold age</div></div>
       <div class="sc"><div class="slb">Median at 67</div><div class="sv" id="rv-p67">—</div><div class="ss">pension starts</div></div>
       <div class="sc"><div class="slb">Median at 85</div><div class="sv" id="rv-p85">—</div><div class="ss">late retirement</div></div>
     </div>
@@ -366,7 +376,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
       <div class="cmpt">All scenarios × allocations</div>
       <div style="overflow-x:auto">
         <table class="tbl">
-          <thead><tr><th>Scenario</th><th>Alloc</th><th>Fail%</th><th>Med@67</th><th>Med@85</th><th>Fail10%</th></tr></thead>
+          <thead><tr><th>Scenario</th><th>Alloc</th><th>Fail%</th><th>Med@67</th><th>Med@85</th><th id="th-fthresh">Fail 10%</th></tr></thead>
           <tbody id="r-tbody"></tbody>
         </table>
       </div>
@@ -410,6 +420,7 @@ var S={
   partTimeOn:false, partTimeIncome:2200, partTimeYears:2,
   etfMean:8, etfStd:16, inflMean:2.5, inflStd:1,
   crashY1:-40, crashY2:-20, depScale:1,
+  endAge:100, failThresh:10,
   N:5000,
   stagPath:[
     {etr:-.15,inf:.04},{etr:-.32,inf:.06},{etr:-.28,inf:.08},
@@ -425,19 +436,18 @@ var SCENKEYS=['baseline','early_crash','depression','stagflation'];
 var SCENLBLS={baseline:'Baseline',early_crash:'Early crash',depression:'1929 depression',stagflation:'Stagflation + 1929'};
 
 function buildAllocs(){
-  var custom=Math.round(S.etfPct)/100;
-  var base=[.30,.40,.50];
-  var already=base.some(function(a){return Math.abs(a-custom)<0.001;});
-  var arr=already?base.slice():base.concat([custom]).sort(function(a,b){return a-b;});
-  ALLOCS=arr;
-  ALLOCLBLS=arr.map(function(a){
-    var pct=Math.round(a*100);
-    var lbl=pct+'% ETF';
-    if(!already&&Math.abs(a-custom)<0.001) lbl+=' ★';
-    return lbl;
+  // Always include 30/40/50 as anchors, plus the user's custom value if different
+  var custom=Math.round(S.etfPct);       // integer percent e.g. 45
+  var base=[30,40,50];
+  var isNew=base.indexOf(custom)===-1;   // true if e.g. 45, 25, 60...
+  var percents=isNew?base.concat([custom]).sort(function(a,b){return a-b;}):base.slice();
+  ALLOCS=percents.map(function(p){return p/100;});
+  ALLOCLBLS=percents.map(function(p){
+    return p+'% ETF'+(isNew&&p===custom?' ★':'');
   });
-  S.curAllocIdx=arr.findIndex(function(a){return Math.abs(a-custom)<0.001;});
-  if(S.curAllocIdx<0) S.curAllocIdx=1;
+  // Select the custom allocation by default
+  var customIdx=percents.indexOf(custom);
+  S.curAllocIdx=customIdx>=0?customIdx:1;
 }
 
 // ── nav ───────────────────────────────────────────────────
@@ -533,6 +543,9 @@ function wireSliders(){
   sl('sl-c2','vl-c2', function(v){S.crashY2=v;}, function(v){return v+'%';});
   sl('sl-di','vl-di', function(v){S.depScale=v;}, function(v){return Math.round(v*100)+'%';});
 
+  sl('sl-ea','vl-ea', function(v){S.endAge=v;}, function(v){return v;});
+  sl('sl-ft','vl-ft', function(v){S.failThresh=v;}, function(v){return v+'%';});
+
   // Number inputs
   ni('ni-pf', function(v){S.portfolio=v;});
   ni('ni-lv', function(v){S.landValue=v;});
@@ -546,7 +559,7 @@ function rn(){var u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();retu
 
 function genPaths(scenario,N){
   var depr=[-0.49,-0.38,-0.28,-0.15,-0.06,0.02,0.03,0.04,0.05,0.07].map(function(v){return v*S.depScale;});
-  var YRS=100-S.fireAge;
+  var YRS=S.endAge-S.fireAge;
   var paths=[];
   for(var s=0;s<N;s++){
     var p=[];
@@ -603,7 +616,8 @@ function simPath(path,etfF){
 
 function runScen(scenario,N){
   var paths=genPaths(scenario,N);
-  var YRS=100-S.fireAge;
+  var YRS=S.endAge-S.fireAge;
+  var thresh=S.failThresh/100;
   return ALLOCS.map(function(etfF){
     var sims=paths.map(function(p){return simPath(p,etfF);});
     var fc=sims.filter(function(r){return r.failed;}).length;
@@ -617,12 +631,12 @@ function runScen(scenario,N){
     }
     var fab={};
     sims.forEach(function(r){if(r.failAge)fab[r.failAge]=(fab[r.failAge]||0)+1;});
-    function ffa(q){var c=0;for(var a=S.fireAge;a<=100;a++){c+=fab[a]||0;if(c/N>=q)return a;}return null;}
+    function ffa(q){var c=0;for(var a=S.fireAge;a<=S.endAge;a++){c+=fab[a]||0;if(c/N>=q)return a;}return null;}
     var p67idx=Math.min(S.pensionAge-S.fireAge,YRS);
     var p85idx=Math.min(85-S.fireAge,YRS);
     return{etfF:etfF,fr:+(fc/N*100).toFixed(1),
       afa:fa.length?Math.round(fa.reduce(function(a,b){return a+b;})/fa.length):null,
-      f10:ffa(.1),f25:ffa(.25),
+      fThresh:ffa(thresh),f25:ffa(.25),
       p67:Math.round(pc[p67idx]?pc[p67idx].p50:0),
       p85:Math.round(pc[p85idx]?pc[p85idx].p50:0),
       pc:pc};
@@ -680,7 +694,9 @@ function drawResults(){
   var r=sc[S.curAllocIdx];
 
   var fEl=g('rv-fr'); fEl.textContent=r.fr+'%'; fEl.className='sv '+(r.fr<10?'gr':r.fr<30?'am':'rd');
-  g('rv-f10').textContent=r.f10?'age '+r.f10:'> 100';
+  g('rv-fr-sub').textContent='before age '+S.endAge;
+  g('rv-f10-lbl').textContent=S.failThresh+'% fail by';
+  g('rv-f10').textContent=r.fThresh?'age '+r.fThresh:'> '+S.endAge;
   g('rv-p67').textContent=fm(r.p67);
   g('rv-p85').textContent=fm(r.p85);
 
@@ -729,20 +745,21 @@ function drawResults(){
   });
 
   var h='';
-  var customF=Math.round(S.etfPct)/100;
+  var thEl=g('th-fthresh'); if(thEl) thEl.textContent='Fail '+S.failThresh+'%';
+  var customPct=Math.round(S.etfPct);
   SCENKEYS.forEach(function(sc){
     ALLOCS.forEach(function(a,i){
       var r=S.results[sc][i];
-      var isCustom=Math.abs(a-customF)<0.001;
-      var hl=(sc===S.curScen&&i===S.curAllocIdx)||isCustom?' class="hl"':'';
-      h+='<tr'+hl+'>';
+      var isCustom=Math.round(a*100)===customPct;
+      var isSelected=sc===S.curScen&&i===S.curAllocIdx;
+      var rowCls=(isCustom||isSelected)?' class="hl"':'';
+      h+='<tr'+rowCls+'>';
       if(i===0) h+='<td rowspan="'+ALLOCS.length+'" style="font-weight:600;vertical-align:middle'+(sc==='stagflation'?';color:var(--rd)':'')+'">'+SCENLBLS[sc]+'</td>';
-      var lbl=ALLOCLBLS[i]+(isCustom&&ALLOCLBLS[i].indexOf('★')<0?' ★':'');
-      h+='<td style="font-family:var(--mono);font-size:10px'+(isCustom?';color:var(--te)':'')+'">'+(isCustom?'<strong>'+lbl+'</strong>':lbl)+'</td>';
+      h+='<td style="font-family:var(--mono);font-size:10px'+(isCustom?';color:var(--te);font-weight:600':'')+'">'+ALLOCLBLS[i]+'</td>';
       h+=('<td>'+fbg(r.fr)+'</td>');
       h+=('<td style="font-family:var(--mono);font-size:10px">'+fm(r.p67)+'</td>');
       h+=('<td style="font-family:var(--mono);font-size:10px">'+fm(r.p85)+'</td>');
-      h+=('<td style="font-family:var(--mono);font-size:10px">'+(r.f10?'age '+r.f10:'> 100')+'</td>');
+      h+=('<td style="font-family:var(--mono);font-size:10px">'+(r.fThresh?'age '+r.fThresh:'> '+S.endAge)+'</td>');
       h+='</tr>';
     });
   });
