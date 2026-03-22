@@ -728,130 +728,110 @@ function genPaths(scenario,N){
   var preYears=calcPreYears();
   var postYears=S.endAge-S.fireAge;
   var TOTAL=preYears+postYears;
+  var em=S.etfMean/100,es=S.etfStd/100,im=S.inflMean/100,is=S.inflStd/100;
+  var bm=S.bondMean/100,bs=S.bondStd/100;
+  var STRIDE=4;
   var paths=[];
   for(var s=0;s<N;s++){
-    var p=[];
+    var p=new Float64Array(TOTAL*STRIDE);
     for(var t=0;t<TOTAL;t++){
-      // t = years since current age (0 = today)
-      // y = years since retirement (negative = pre-retirement)
-      var y=t-preYears;
-      var inf,er;
-      var em=S.etfMean/100,es=S.etfStd/100,im=S.inflMean/100,is=S.inflStd/100;
-      // Scenario paths count from t=0 (current age), not from retirement
+      var inf,er,br,stagInf;
       if(scenario==='stagflation'){
         var sp=t<S.stagPath.length?S.stagPath[t]:null;
         inf=sp?Math.max(-.02,sp.inf+rn()*.015):Math.max(-.01,im+rn()*is);
         er=sp?sp.etr+rn()*.12:em+rn()*es;
+        stagInf=sp?sp.inf:inf;
+        br=sp?(bm-sp.inf*0.5)+rn()*bs:bm+rn()*bs;
       } else if(scenario==='early_crash'){
         inf=Math.max(-.01,im+rn()*is);
         er=t===0?S.crashY1/100:t===1?S.crashY2/100:em+rn()*es;
+        stagInf=inf; br=t===0?0.04:t===1?0.03:bm+rn()*bs;
       } else if(scenario==='depression'){
         inf=t<4?-.015+rn()*.015:Math.max(-.01,im+rn()*is);
         er=t<depr.length?depr[t]+rn()*.04:em+rn()*es;
+        stagInf=inf; br=t<4?0.02+rn()*0.03:bm+rn()*bs;
       } else {
         inf=Math.max(-.01,im+rn()*is);
-        er=em+rn()*es;
+        er=em+rn()*es; stagInf=inf; br=bm+rn()*bs;
       }
-      // Bond return: during depression/crash bonds act as mild safe haven (negative correlation modelled)
-      var bm=S.bondMean/100, bs=S.bondStd/100;
-      var br;
-      if(scenario==='early_crash'){
-        br=t===0?0.04:t===1?0.03:bm+rn()*bs; // bonds rise slightly during equity crash
-      } else if(scenario==='depression'){
-        br=t<4?0.02+rn()*0.03:bm+rn()*bs; // mild positive during depression deflation
-      } else if(scenario==='stagflation'){
-        var sp2=t<S.stagPath.length?S.stagPath[t]:null;
-        br=sp2?(bm-sp2.inf*0.5)+rn()*bs:bm+rn()*bs; // bonds hurt by high inflation
-      } else {
-        br=bm+rn()*bs;
-      }
-      p.push({inf:inf,er:er,br:br,stagInf:stagInf,y:y});
+      var b=t*STRIDE; p[b]=inf;p[b+1]=er;p[b+2]=br;p[b+3]=stagInf;
     }
     paths.push(p);
   }
-  return{paths:paths,preYears:preYears,postYears:postYears};
+  return{paths:paths,preYears:preYears,postYears:postYears,STRIDE:STRIDE};
 }
 
-function simPath(pathData,etfF){
-  var path=pathData.paths;
-  var preYears=pathData.preYears;
-  var postYears=pathData.postYears;
-  var bondF=getBondFrac(etfF);
-  var cashF=getCashPct(etfF);
-  var etf=S.portfolio*etfF;
-  var bonds=S.portfolio*bondF;
-  var cash=S.portfolio*cashF;
-  var land=S.landValue, landSold=false;
-  var failed=false, failAge=null;
-  var pv=[];
+function simPath(path,preYears,postYears,etfF){
+  var STRIDE=4,TOTAL=preYears+postYears;
+  var bondF=getBondFrac(etfF),cashF=getCashPct(etfF);
+  var etf=S.portfolio*etfF,bonds=S.portfolio*bondF,cash=S.portfolio*cashF;
+  var land=S.landValue,landSold=false;
+  var failed=false,failAge=0;
+  var pv=new Float64Array(postYears+1);
+  var pvIdx=0;
   var PY=S.pensionAge-S.fireAge;
   var cr=S.cashReturn/100;
   var ci=1;
-
-  for(var t=0;t<path.length;t++){
-    var sh=path[t];
-    var y=sh.y;
-
-    etf=Math.max(0,etf*(1+sh.er));
-    bonds=Math.max(0,bonds*(1+sh.br));
-    cash=cash*(1+cr);
-    if(!landSold) land*=1+(S.landApp/100)+Math.max(0,sh.stagInf)*.4+rn()*.012;
-    ci*=1+sh.inf;
-
-    var pen=y>=PY?S.pension*12*ci:0;
-    var extraInc=0;
-    for(var ei=0;ei<S.extraIncomes.length;ei++){
-      var e=S.extraIncomes[ei];
-      if(y>=e.startYr&&y<e.startYr+e.duration) extraInc+=e.monthly*12*ci;
+  var lapp=S.landApp/100;
+  var sal12=S.salary*12,pen12=S.pension*12,exp=S.expenses;
+  var ei,e,amount;
+  for(var t=0;t<TOTAL;t++){
+    var b=t*STRIDE;
+    var inf=path[b],er=path[b+1],br=path[b+2],stagInf=path[b+3];
+    var y=t-preYears;
+    etf*=1+er; if(etf<0)etf=0;
+    bonds*=1+br; if(bonds<0)bonds=0;
+    cash*=1+cr;
+    if(!landSold) land*=1+lapp+(stagInf>0?stagInf*0.4:0)+rn()*0.012;
+    ci*=1+inf;
+    var pen=y>=PY?pen12*ci:0;
+    var xInc=0;
+    for(ei=0;ei<S.extraIncomes.length;ei++){
+      e=S.extraIncomes[ei];
+      if(y>=e.startYr&&y<e.startYr+e.duration) xInc+=e.monthly*12*ci;
     }
-
-    function drawFrom(amount){
-      // draw from cash first, then bonds, then ETF
-      if(cash>=amount){cash-=amount;return;}
-      amount-=cash; cash=0;
-      if(bonds>=amount){bonds-=amount;return;}
-      amount-=bonds; bonds=0;
-      etf=Math.max(0,etf-amount);
-    }
-
     if(y<0){
-      var salaryAnnual=S.salary*12*ci;
-      var net=salaryAnnual+extraInc-S.expenses*ci;
-      if(net>=0){ cash+=net; }
-      else{ drawFrom(-net); }
+      var net=sal12*ci+xInc-exp*ci;
+      if(net>=0){cash+=net;}
+      else{
+        amount=-net;
+        if(cash>=amount){cash-=amount;}
+        else{amount-=cash;cash=0;if(bonds>=amount){bonds-=amount;}else{amount-=bonds;bonds=0;etf-=amount;if(etf<0)etf=0;}}
+      }
     } else {
-      var wd=Math.max(0,S.expenses*ci-pen-extraInc);
-      var liq=etf+bonds+cash;
-      if(!landSold&&liq<S.landTrigger&&land>0){cash+=land;land=0;landSold=true;}
-      drawFrom(wd);
+      var wd=exp*ci-pen-xInc; if(wd<0)wd=0;
+      if(!landSold&&(etf+bonds+cash)<S.landTrigger&&land>0){cash+=land;land=0;landSold=true;}
+      if(cash>=wd){cash-=wd;}
+      else{amount=wd-cash;cash=0;if(bonds>=amount){bonds-=amount;}else{amount-=bonds;bonds=0;etf-=amount;if(etf<0)etf=0;}}
       if(!failed&&(etf+bonds+cash)<=0){failed=true;failAge=S.fireAge+y+1;}
     }
-
-    if(y>=-1){
-      var tot=(etf+bonds+cash)+(!landSold?land:0);
-      pv.push(Math.max(0,tot));
-    }
+    if(y>=-1) pv[pvIdx++]=(etf+bonds+cash)+(!landSold?land:0);
   }
-  return{pv:pv,failed:failed,failAge:failAge};
+  return{pv:pv,pvLen:pvIdx,failed:failed,failAge:failAge};
 }
 
 function runScen(scenario,N){
   var pd=genPaths(scenario,N);
-  var YRS=pd.postYears;
+  var YRS=pd.postYears,preYears=pd.preYears;
   var thresh=S.failThresh/100;
+  var tmp=new Float64Array(N);
   return ALLOCS.map(function(etfF){
-    var sims=pd.paths.map(function(p){return simPath({paths:p,preYears:pd.preYears,postYears:pd.postYears},etfF);});
-    var fc=sims.filter(function(r){return r.failed;}).length;
-    var fa=sims.filter(function(r){return r.failAge;}).map(function(r){return r.failAge;});
+    var sims=pd.paths.map(function(p){return simPath(p,preYears,pd.postYears,etfF);});
+    var fc=0,fa=[];
+    for(var s=0;s<N;s++){if(sims[s].failed){fc++;if(sims[s].failAge)fa.push(sims[s].failAge);}}
     var pc=[];
     for(var y=0;y<=YRS;y++){
-      var vals=sims.map(function(r){return r.pv[y]||0;}).sort(function(a,b){return a-b;});
-      var n=vals.length;
-      function pq(q){return Math.max(0,vals[Math.min(Math.floor(q*(n-1)),n-1)]);}
-      pc.push({age:S.fireAge+y,p10:pq(.1),p25:pq(.25),p50:pq(.5),p75:pq(.75),p90:pq(.9)});
+      for(var s=0;s<N;s++) tmp[s]=sims[s].pv[y]||0;
+      tmp.sort();
+      var p10=tmp[Math.min(Math.floor(0.1*(N-1)),N-1)];
+      var p25=tmp[Math.min(Math.floor(0.25*(N-1)),N-1)];
+      var p50=tmp[Math.min(Math.floor(0.5*(N-1)),N-1)];
+      var p75=tmp[Math.min(Math.floor(0.75*(N-1)),N-1)];
+      var p90=tmp[Math.min(Math.floor(0.9*(N-1)),N-1)];
+      pc.push({age:S.fireAge+y,p10:p10<0?0:p10,p25:p25<0?0:p25,p50:p50<0?0:p50,p75:p75<0?0:p75,p90:p90<0?0:p90});
     }
     var fab={};
-    sims.forEach(function(r){if(r.failAge)fab[r.failAge]=(fab[r.failAge]||0)+1;});
+    for(var s=0;s<N;s++){if(sims[s].failAge)fab[sims[s].failAge]=(fab[sims[s].failAge]||0)+1;}
     function ffa(q){var c=0;for(var a=S.fireAge;a<=S.endAge;a++){c+=fab[a]||0;if(c/N>=q)return a;}return null;}
     var p67idx=Math.min(S.pensionAge-S.fireAge,YRS);
     var p85idx=Math.min(85-S.fireAge,YRS);
@@ -863,6 +843,8 @@ function runScen(scenario,N){
       pc:pc};
   });
 }
+
+
 
 async function runAll(){
   if(S._running) return;
