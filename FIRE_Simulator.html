@@ -767,8 +767,9 @@ function simPath(path,preYears,postYears,etfF){
   var etf=S.portfolio*etfF,bonds=S.portfolio*bondF,cash=S.portfolio*cashF;
   var land=S.landValue,landSold=false;
   var failed=false,failAge=0;
+  // pv[0] = portfolio entering retirement; pv[y+1] = after retirement year y
+  // Total: postYears+1 entries covering ages fireAge..endAge
   var pv=new Float64Array(postYears+1);
-  var pvIdx=0;
   var PY=S.pensionAge-S.fireAge;
   var cr=S.cashReturn/100;
   var ci=1;
@@ -791,6 +792,7 @@ function simPath(path,preYears,postYears,etfF){
       if(y>=e.startYr&&y<e.startYr+e.duration) xInc+=e.monthly*12*ci;
     }
     if(y<0){
+      // pre-retirement: salary + extra income vs expenses
       var net=sal12*ci+xInc-exp*ci;
       if(net>=0){cash+=net;}
       else{
@@ -798,16 +800,22 @@ function simPath(path,preYears,postYears,etfF){
         if(cash>=amount){cash-=amount;}
         else{amount-=cash;cash=0;if(bonds>=amount){bonds-=amount;}else{amount-=bonds;bonds=0;etf-=amount;if(etf<0)etf=0;}}
       }
+      // record portfolio at the moment retirement begins (after last pre-retirement year)
+      if(y===-1) pv[0]=(etf+bonds+cash)+(!landSold?land:0);
     } else {
+      // record portfolio at START of this retirement year (before withdrawals)
+      // pv[0] already set above; if no pre-retirement, set it on y==0 before first withdrawal
+      if(y===0&&preYears===0) pv[0]=(etf+bonds+cash)+(!landSold?land:0);
       var wd=exp*ci-pen-xInc; if(wd<0)wd=0;
       if(!landSold&&(etf+bonds+cash)<S.landTrigger&&land>0){cash+=land;land=0;landSold=true;}
       if(cash>=wd){cash-=wd;}
       else{amount=wd-cash;cash=0;if(bonds>=amount){bonds-=amount;}else{amount-=bonds;bonds=0;etf-=amount;if(etf<0)etf=0;}}
       if(!failed&&(etf+bonds+cash)<=0){failed=true;failAge=S.fireAge+y+1;}
+      // record portfolio at END of this retirement year (pv[y+1])
+      if(y+1<=postYears) pv[y+1]=(etf+bonds+cash)+(!landSold?land:0);
     }
-    if(y>=-1) pv[pvIdx++]=(etf+bonds+cash)+(!landSold?land:0);
   }
-  return{pv:pv,pvLen:pvIdx,failed:failed,failAge:failAge};
+  return{pv:pv,failed:failed,failAge:failAge};
 }
 
 function runScen(scenario,N){
