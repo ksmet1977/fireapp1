@@ -132,13 +132,25 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
   <div class="stit">Your profile</div>
   <div class="card">
     <div class="row">
+      <div class="rlbl">Current age<small>portfolio value is as of now</small></div>
+      <input type="range" id="sl-ca" min="20" max="65" step="1" value="49">
+      <div class="rval" id="vl-ca">49</div>
+    </div>
+    <div class="row">
       <div class="rlbl">FIRE age<small>retire at this age</small></div>
-      <input type="range" id="sl-fa" min="40" max="65" step="1" value="49">
+      <input type="range" id="sl-fa" min="20" max="65" step="1" value="49">
       <div class="rval" id="vl-fa">49</div>
     </div>
     <div class="row">
-      <div class="rlbl">Portfolio value<small>liquid assets (ETF + cash)</small></div>
+      <div class="rlbl">Portfolio value<small>current liquid assets (ETF + cash)</small></div>
       <input type="number" id="ni-pf" value="950000" step="10000">
+    </div>
+    <div class="row" id="pre-ret-note" style="display:none">
+      <div class="rlbl" style="font-size:11px;color:var(--te)">Portfolio compounds for <span id="pre-yrs-lbl">0</span> years before retirement. Net saving (salary − expenses) is added each year.</div>
+    </div>
+    <div class="row" id="salary-row" style="display:none">
+      <div class="rlbl">Monthly salary (net)<small>pre-retirement income</small></div>
+      <input type="number" id="ni-sal" value="4300" step="100">
     </div>
   </div>
 </div>
@@ -197,32 +209,15 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
 </div>
 
 <div class="sec">
-  <div class="stit">Part-time income before full retirement</div>
-  <div class="card">
-    <div class="row">
-      <div class="rlbl">Enable part-time income<small>tap to toggle on/off</small></div>
-      <div class="togbtn" id="pt-btn" onclick="togglePT()">
-        <div class="togbg" id="pt-bg"></div>
-        <div class="togdot" id="pt-dot"></div>
-      </div>
+  <div class="stit">Additional income streams</div>
+  <div class="card" id="ei-card">
+    <div id="ei-list"></div>
+    <div style="padding:12px 16px">
+      <button onclick="addEI()" style="width:100%;padding:10px;background:transparent;border:1px dashed var(--b1);border-radius:8px;color:var(--t2);font-family:var(--sans);font-size:12px;cursor:pointer">+ Add income stream</button>
     </div>
-    <div id="pt-fields" style="display:none">
-      <div class="row">
-        <div class="rlbl">Monthly net income<small>€ per month</small></div>
-        <input type="number" id="ni-pti" value="2200" step="100">
-      </div>
-      <div class="row">
-        <div class="rlbl">Duration<small>years of part-time work</small></div>
-        <input type="range" id="sl-pty" min="1" max="10" step="1" value="2">
-        <div class="rval" id="vl-pty">2 yr</div>
-      </div>
-      <div class="note">Only the net shortfall (expenses minus income) is drawn from the portfolio during part-time years.</div>
-    </div>
+    <div style="padding:0 16px 12px;font-size:11px;color:var(--t3);line-height:1.6">Start year is relative to retirement age (0 = retirement year, −3 = 3 years before, 5 = 5 years after). All income is inflation-indexed.</div>
   </div>
 </div>
-
-<div class="sec">
-  <div class="stit">Simulation</div>
   <div class="card">
     <div class="row">
       <div class="rlbl">Paths (N)<small>more paths = slower but more accurate</small></div>
@@ -299,7 +294,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
         <input type="range" id="sl-c2" min="-55" max="0" step="1" value="-20">
         <div class="rval" id="vl-c2">-20%</div>
       </div>
-      <div class="note" style="padding:12px 16px">Normal baseline returns resume from year 3. Inflation unchanged throughout.</div>
+      <div class="note" style="padding:12px 16px">Crash years count from <strong>current age</strong> — year 1 crash hits immediately, whether pre- or post-retirement. Normal baseline returns resume from year 3.</div>
     </div>
   </div>
 </div>
@@ -319,7 +314,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
           <div style="color:var(--t3)">Yr1</div><div style="color:var(--t3)">Yr2</div><div style="color:var(--t3)">Yr3</div><div style="color:var(--t3)">Yr4</div><div style="color:var(--t3)">Yr5</div>
           <div style="color:var(--rd)">-49%</div><div style="color:var(--rd)">-38%</div><div style="color:var(--rd)">-28%</div><div style="color:var(--am)">-15%</div><div style="color:var(--am)">-6%</div>
         </div>
-        <div style="font-size:11px;color:var(--t3);margin-top:8px">Mild deflation yrs 1–4. Slow 2–9%/yr recovery through yr 12.</div>
+        <div style="font-size:11px;color:var(--t3);margin-top:8px">Counts from current age. Mild deflation yrs 1–4. Slow 2–9%/yr recovery through yr 12.</div>
       </div>
     </div>
   </div>
@@ -329,7 +324,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
   <div class="sec">
     <div class="stit" style="color:var(--rd)">Stagflation + 1929</div>
     <div class="card">
-      <div class="note" style="padding:12px 16px 8px">Combines a depression-style equity crash with 1970s-style stagflation — high inflation and low/negative growth simultaneously. Edit year-by-year below. Land gains +40% of each year's CPI on top of base rate.</div>
+      <div class="note" style="padding:12px 16px 8px">Combines a depression-style equity crash with 1970s-style stagflation — high inflation and low/negative growth simultaneously. Scenario years count from <strong>current age</strong>, not retirement age. Year 1 = today. Land gains +40% of each year's CPI on top of base rate.</div>
       <div style="overflow-x:auto;padding:0 16px 14px">
         <table class="stgt">
           <thead><tr><th>Age</th><th>ETF %</th><th>CPI %</th><th></th></tr></thead>
@@ -385,6 +380,101 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
   </div>
 </div>
 
+<!-- ══ ASSUMPTIONS ══════════════════════════════════════════ -->
+<div class="screen" id="sc-assumptions">
+<div class="gap"></div>
+
+<div class="sec">
+  <div class="stit">ETF returns</div>
+  <div class="card">
+    <div style="padding:14px 16px">
+      <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">8% mean nominal return, 16% std deviation</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7">Based on MSCI World / IWDA long-run historical performance. The 8% nominal figure reflects the ~10% historical real return of global equities minus approximately 2% for European inflation context. The 16% standard deviation reflects observed annual volatility of a global index ETF. Source: MSCI World index data 1970–2024, Vanguard global equity research.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="stit">Cash return</div>
+  <div class="card">
+    <div style="padding:14px 16px">
+      <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">0% nominal — loses real value at inflation rate</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7">Belgian savings accounts have historically yielded 0.11–1.75% nominal in the post-2015 low-rate environment. Modelled as 0% to be conservative and reflect that cash held outside high-yield savings earns effectively nothing in real terms. At 2.5% inflation, €665k in cash loses ~€140k of real value over 10 years. No bonds are modelled — this reflects the actual portfolio composition.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="stit">Inflation</div>
+  <div class="card">
+    <div style="padding:14px 16px">
+      <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">2.5% mean, 1% std deviation, floor −1%</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7">Belgian CPI averaged ~2.2% from 2000–2019 and spiked to 10%+ in 2022. The 2.5% mean reflects the ECB's 2% target plus a small structural premium for Belgian energy and housing costs. The 1% standard deviation reflects normal year-to-year variation. The −1% floor prevents deflationary spirals outside the depression scenario. Source: Statbel Belgian CPI data, ECB inflation targets.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="stit">Land / real estate</div>
+  <div class="card">
+    <div style="padding:14px 16px">
+      <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">4% nominal appreciation base rate</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7">Belgian bouwgrond (building land) in East Flanders has appreciated at 3.5–5% nominal per year over 2010–2023, with Waasland/Sinaai area tracking the provincial average. The 4% default reflects a conservative mid-point. Source: Statbel vastgoedstatistieken, Notarisbarometer 2023.</div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--b1)">
+        <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">+40% of CPI as additional appreciation during stagflation</div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.7">Real estate prices historically show partial pass-through of inflation — property is a real asset and tends to rise with general price levels, but with a lag and only partially. The 40% figure means that at 8% CPI, land gains an extra ~3.2% on top of the base rate. This is based on academic research into Belgian and European real estate inflation beta, which typically ranges from 30–60% for residential land over 5-year horizons. Sources: Geltner et al. "Real Estate Finance and Investments" (2014); De Wit & Van Dijk (2003) "The Global Determinants of Real Estate Returns."</div>
+      </div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--b1)">
+        <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">Belgian capital gains tax on land</div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.7">Land held &gt;8 years is sold completely tax-free in Belgium (no meerwaardebelasting). Notary and transaction costs of ~1–2% are implicitly absorbed in the conservative appreciation assumption. Source: FOD Financiën, Wetboek van de Inkomstenbelastingen art. 90, 8°.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="stit">Pension</div>
+  <div class="card">
+    <div style="padding:14px 16px">
+      <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">Belgian state pension, inflation-indexed from age 67</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7">Belgian wettelijk pensioen is indexed to the consumer price index via the health index mechanism (spilindex). The simulation inflation-indexes the pension amount each year, which reflects actual Belgian pension law. The statutory retirement age is 67 from 2030 onward. Source: Federale Pensioendienst, Wet van 10 augustus 2015.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="stit">Stagflation + 1929 scenario</div>
+  <div class="card">
+    <div style="padding:14px 16px">
+      <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">Depression-style crash + 1970s stagflation overlay</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7">The 1929 equity path is derived from the Dow Jones Industrial Average decline of 1929–1932 (−89% peak to trough), scaled to the MSCI World context. The stagflation inflation overlay is based on US CPI during 1973–1982 (peak 14.8% in 1980) applied at a European scale. The combination represents the worst plausible scenario: equities collapse while cost of living rises, destroying both the ETF portfolio and the real value of cash simultaneously. The default path is calibrated to be severe but historically grounded — not a tail risk invented for the app. Sources: Shiller (2005) "Irrational Exuberance"; FRED US CPI data 1970–1985; MSCI World reconstructed pre-1987 data.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="stit">Failure definition</div>
+  <div class="card">
+    <div style="padding:14px 16px">
+      <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">Liquid portfolio reaches zero AND land already sold</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7">A simulation path is counted as "failed" only when both the liquid portfolio (ETF + cash) hits zero and the land has already been sold and spent. This means the land sale acts as a mandatory last-resort rescue — failure only occurs if even the land proceeds are exhausted. This is a conservative and realistic definition: it assumes land can always be sold, which may not hold in severe economic conditions. Home equity (50%) is excluded entirely as an additional unlisted buffer.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="stit">Monte Carlo method</div>
+  <div class="card">
+    <div style="padding:14px 16px">
+      <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">Shared paths, normally-distributed shocks</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7">Each simulation run generates N random market paths first (using Box-Muller normal distribution), then runs all allocations on the identical paths. This ensures fair comparison — the only difference between 30% and 50% ETF is the allocation, not luck of the draw. Returns and inflation are drawn independently each year (no autocorrelation modelled), which is a simplification — real markets show some momentum and mean-reversion. This makes the model slightly more volatile than reality in short windows but unbiased over long horizons.</div>
+    </div>
+  </div>
+</div>
+
+<div class="gap"></div>
+</div>
+
 </div><!-- /screens -->
 
 <nav>
@@ -400,6 +490,10 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
     <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
     Results
   </button>
+  <button class="nb" id="nav-assumptions" onclick="goS('assumptions','nav-assumptions')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    Assumptions
+  </button>
 </nav>
 
 <div class="ov" id="ov" style="display:none">
@@ -414,13 +508,15 @@ function g(x){return document.getElementById(x);}
 
 // ── state ─────────────────────────────────────────────────
 var S={
-  fireAge:49, portfolio:950000, etfPct:40,
+  currentAge:49, fireAge:49, portfolio:950000, etfPct:40,
+  salary:4300,
   landValue:400000, landApp:4, landTrigger:50000,
   expenses:33000, pension:2200, pensionAge:67,
-  partTimeOn:false, partTimeIncome:2200, partTimeYears:2,
+
   etfMean:8, etfStd:16, inflMean:2.5, inflStd:1,
   crashY1:-40, crashY2:-20, depScale:1,
   endAge:100, failThresh:10,
+  extraIncomes:[],
   N:5000,
   stagPath:[
     {etr:-.15,inf:.04},{etr:-.32,inf:.06},{etr:-.28,inf:.08},
@@ -459,12 +555,7 @@ function goS(name, btnId){
 }
 
 // ── toggle ────────────────────────────────────────────────
-function togglePT(){
-  S.partTimeOn = !S.partTimeOn;
-  g('pt-fields').style.display = S.partTimeOn ? 'block' : 'none';
-  g('pt-bg').className = 'togbg' + (S.partTimeOn ? ' on' : '');
-  g('pt-dot').className = 'togdot' + (S.partTimeOn ? ' on' : '');
-}
+
 
 // ── scenario panels ───────────────────────────────────────
 function showPanel(pid){
@@ -527,14 +618,24 @@ function wireSliders(){
   }
 
   // Inputs screen sliders
-  sl('sl-fa','vl-fa', function(v){S.fireAge=v; renderST();}, function(v){return v;});
+  sl('sl-ca','vl-ca', function(v){
+    S.currentAge=v;
+    // keep currentAge <= fireAge
+    if(S.currentAge>S.fireAge){S.fireAge=S.currentAge;g('sl-fa').value=S.fireAge;g('vl-fa').textContent=S.fireAge;}
+    updatePreNote(); renderST(); renderEI();
+  }, function(v){return v;});
+  sl('sl-fa','vl-fa', function(v){
+    S.fireAge=v;
+    // keep fireAge >= currentAge
+    if(S.fireAge<S.currentAge){S.currentAge=S.fireAge;g('sl-ca').value=S.currentAge;g('vl-ca').textContent=S.currentAge;}
+    updatePreNote(); renderST(); renderEI();
+  }, function(v){return v;});
   sl('sl-ep','vl-ep', function(v){S.etfPct=v;}, function(v){return v+'% / '+(100-v)+'% cash';});
   sl('sl-la','vl-la', function(v){S.landApp=v;}, function(v){return v+'%';});
   sl('sl-lt','vl-lt', function(v){S.landTrigger=v;}, function(v){return '€'+Math.round(v/1000)+'k';});
   sl('sl-pa','vl-pa', function(v){S.pensionAge=v;}, function(v){return v;});
-  sl('sl-pty','vl-pty', function(v){S.partTimeYears=v;}, function(v){return v+' yr';});
 
-  // Scenario sliders
+  // Number inputs
   sl('sl-em','vl-em', function(v){S.etfMean=v;}, function(v){return v+'%';});
   sl('sl-es','vl-es', function(v){S.etfStd=v;}, function(v){return v+'%';});
   sl('sl-im','vl-im', function(v){S.inflMean=v;}, function(v){return v+'%';});
@@ -547,79 +648,138 @@ function wireSliders(){
   sl('sl-ft','vl-ft', function(v){S.failThresh=v;}, function(v){return v+'%';});
 
   // Number inputs
+  ni('ni-sal', function(v){S.salary=v;});
   ni('ni-pf', function(v){S.portfolio=v;});
   ni('ni-lv', function(v){S.landValue=v;});
   ni('ni-ex', function(v){S.expenses=v;});
   ni('ni-pe', function(v){S.pension=v;});
-  ni('ni-pti', function(v){S.partTimeIncome=v;});
 }
 
 // ── simulation ────────────────────────────────────────────
 function rn(){var u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
 
+function updatePreNote(){
+  var pre=S.fireAge-S.currentAge;
+  var note=g('pre-ret-note');
+  var salrow=g('salary-row');
+  if(note){
+    var show=pre>0;
+    note.style.display=show?'flex':'none';
+    if(salrow) salrow.style.display=show?'flex':'none';
+    var lbl=g('pre-yrs-lbl');
+    if(lbl) lbl.textContent=pre+' year'+(pre===1?'':'s');
+  }
+}
+
+function calcPreYears(){
+  // Years before retirement = max of (fireAge - currentAge) and any extra income streams that start earlier
+  var base=Math.max(0,S.fireAge-S.currentAge);
+  for(var i=0;i<S.extraIncomes.length;i++){
+    var e=S.extraIncomes[i];
+    if(e.startYr<0) base=Math.max(base,-e.startYr);
+  }
+  return base;
+}
+
 function genPaths(scenario,N){
   var depr=[-0.49,-0.38,-0.28,-0.15,-0.06,0.02,0.03,0.04,0.05,0.07].map(function(v){return v*S.depScale;});
-  var YRS=S.endAge-S.fireAge;
+  var preYears=calcPreYears();
+  var postYears=S.endAge-S.fireAge;
+  var TOTAL=preYears+postYears;
   var paths=[];
   for(var s=0;s<N;s++){
     var p=[];
-    for(var y=0;y<YRS;y++){
+    for(var t=0;t<TOTAL;t++){
+      // t = years since current age (0 = today)
+      // y = years since retirement (negative = pre-retirement)
+      var y=t-preYears;
       var inf,er;
       var em=S.etfMean/100,es=S.etfStd/100,im=S.inflMean/100,is=S.inflStd/100;
+      // Scenario paths count from t=0 (current age), not from retirement
       if(scenario==='stagflation'){
-        var sp=y<S.stagPath.length?S.stagPath[y]:null;
+        var sp=t<S.stagPath.length?S.stagPath[t]:null;
         inf=sp?Math.max(-.02,sp.inf+rn()*.015):Math.max(-.01,im+rn()*is);
         er=sp?sp.etr+rn()*.12:em+rn()*es;
       } else if(scenario==='early_crash'){
         inf=Math.max(-.01,im+rn()*is);
-        er=y===0?S.crashY1/100:y===1?S.crashY2/100:em+rn()*es;
+        er=t===0?S.crashY1/100:t===1?S.crashY2/100:em+rn()*es;
       } else if(scenario==='depression'){
-        inf=y<4?-.015+rn()*.015:Math.max(-.01,im+rn()*is);
-        er=y<depr.length?depr[y]+rn()*.04:em+rn()*es;
+        inf=t<4?-.015+rn()*.015:Math.max(-.01,im+rn()*is);
+        er=t<depr.length?depr[t]+rn()*.04:em+rn()*es;
       } else {
         inf=Math.max(-.01,im+rn()*is);
         er=em+rn()*es;
       }
-      var stagInf=scenario==='stagflation'&&y<S.stagPath.length?S.stagPath[y].inf:inf;
-      p.push({inf:inf,er:er,stagInf:stagInf});
+      var stagInf=scenario==='stagflation'&&t<S.stagPath.length?S.stagPath[t].inf:inf;
+      p.push({inf:inf,er:er,stagInf:stagInf,y:y});
     }
     paths.push(p);
   }
-  return paths;
+  return{paths:paths,preYears:preYears,postYears:postYears};
 }
 
-function simPath(path,etfF){
-  var YRS=path.length;
+function simPath(pathData,etfF){
+  var path=pathData.paths;
+  var preYears=pathData.preYears;
+  var postYears=pathData.postYears;
   var etf=S.portfolio*etfF, cash=S.portfolio*(1-etfF), ci=1;
   var land=S.landValue, landSold=false;
   var failed=false, failAge=null;
-  var pv=[S.portfolio+S.landValue];
+  // pv tracks post-retirement values only (index 0 = at retirement)
+  var pv=[];
   var PY=S.pensionAge-S.fireAge;
-  var PTY=S.partTimeOn?S.partTimeYears:0;
-  for(var y=0;y<YRS;y++){
-    var sh=path[y];
+
+  for(var t=0;t<path.length;t++){
+    var sh=path[t];
+    var y=sh.y; // years since retirement (negative = pre-retirement)
+
     ci*=1+sh.inf;
     etf=Math.max(0,etf*(1+sh.er));
     if(!landSold) land*=1+(S.landApp/100)+Math.max(0,sh.stagInf)*.4+rn()*.012;
-    var inc=S.partTimeOn&&y<PTY?S.partTimeIncome*12*ci:0;
+
     var pen=y>=PY?S.pension*12*ci:0;
-    var wd=Math.max(0,S.expenses*ci-inc-pen);
-    var liq=etf+cash;
-    if(!landSold&&liq<S.landTrigger&&land>0){cash+=land;land=0;landSold=true;}
-    if(cash>=wd)cash-=wd;else{var gap=wd-cash;cash=0;etf=Math.max(0,etf-gap);}
-    var tot=(etf+cash)+(!landSold?land:0);
-    pv.push(Math.max(0,tot));
-    if(!failed&&(etf+cash)<=0){failed=true;failAge=S.fireAge+y+1;}
+    var extraInc=0;
+    for(var ei=0;ei<S.extraIncomes.length;ei++){
+      var e=S.extraIncomes[ei];
+      if(y>=e.startYr&&y<e.startYr+e.duration) extraInc+=e.monthly*12*ci;
+    }
+
+    if(y<0){
+      // Pre-retirement: salary covers expenses, net saving = salary + extra income - expenses
+      var salaryAnnual=S.salary*12*ci;
+      var net=salaryAnnual+extraInc-S.expenses*ci;
+      if(net>=0){
+        cash+=net; // net saving added to cash
+      } else {
+        // spending more than earning — draw shortfall from portfolio
+        var draw=-net;
+        if(cash>=draw) cash-=draw;
+        else{var gap2=draw-cash; cash=0; etf=Math.max(0,etf-gap2);}
+      }
+    } else {
+      // Post-retirement: normal withdrawal logic
+      var wd=Math.max(0,S.expenses*ci-pen-extraInc);
+      var liq=etf+cash;
+      if(!landSold&&liq<S.landTrigger&&land>0){cash+=land;land=0;landSold=true;}
+      if(cash>=wd)cash-=wd;else{var gap=wd-cash;cash=0;etf=Math.max(0,etf-gap);}
+      if(!failed&&(etf+cash)<=0){failed=true;failAge=S.fireAge+y+1;}
+    }
+
+    // Record portfolio value at retirement onwards
+    if(y>=-1){ // include the value at retirement (after year -1 completes → start of retirement)
+      var tot=(etf+cash)+(!landSold?land:0);
+      pv.push(Math.max(0,tot));
+    }
   }
   return{pv:pv,failed:failed,failAge:failAge};
 }
 
 function runScen(scenario,N){
-  var paths=genPaths(scenario,N);
-  var YRS=S.endAge-S.fireAge;
+  var pd=genPaths(scenario,N);
+  var YRS=pd.postYears;
   var thresh=S.failThresh/100;
   return ALLOCS.map(function(etfF){
-    var sims=paths.map(function(p){return simPath(p,etfF);});
+    var sims=pd.paths.map(function(p){return simPath({paths:p,preYears:pd.preYears,postYears:pd.postYears},etfF);});
     var fc=sims.filter(function(r){return r.failed;}).length;
     var fa=sims.filter(function(r){return r.failAge;}).map(function(r){return r.failAge;});
     var pc=[];
@@ -766,10 +926,60 @@ function drawResults(){
   g('r-tbody').innerHTML=h;
 }
 
+// ── extra income streams ──────────────────────────────────
+function renderEI(){
+  var list=g('ei-list');
+  if(!list) return;
+  if(S.extraIncomes.length===0){
+    list.innerHTML='<div style="padding:12px 16px;font-size:12px;color:var(--t3)">No additional income streams added.</div>';
+    return;
+  }
+  var h='';
+  S.extraIncomes.forEach(function(e,i){
+    h+='<div style="padding:12px 16px;border-bottom:1px solid var(--b1)">';
+    h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+    h+='<div style="font-size:12px;font-weight:500;color:var(--te)">Stream '+(i+1)+'</div>';
+    h+='<button onclick="delEI('+i+')" style="background:transparent;border:none;color:var(--t3);font-size:18px;cursor:pointer;padding:0 4px;line-height:1">×</button>';
+    h+='</div>';
+    // monthly amount
+    h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+    h+='<div style="font-size:12px;color:var(--t2)">Monthly (net)</div>';
+    h+='<input type="number" value="'+e.monthly+'" step="100" style="width:105px;font-size:12px;padding:6px 10px;background:var(--bg3);border:1px solid var(--b1);border-radius:8px;color:var(--t1);font-family:var(--mono);text-align:right;outline:none;-webkit-appearance:none" onchange="S.extraIncomes['+i+'].monthly=+this.value" oninput="S.extraIncomes['+i+'].monthly=+this.value">';
+    h+='</div>';
+    // start year
+    h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+    h+='<div style="font-size:12px;color:var(--t2)">Start year<br><span style="font-size:10px;color:var(--t3)">0 = retirement · negative = before</span></div>';
+    h+='<input type="number" value="'+e.startYr+'" step="1" min="-60" max="60" style="width:105px;font-size:12px;padding:6px 10px;background:var(--bg3);border:1px solid var(--b1);border-radius:8px;color:var(--t1);font-family:var(--mono);text-align:right;outline:none;-webkit-appearance:none" onchange="S.extraIncomes['+i+'].startYr=+this.value;renderEI()" oninput="S.extraIncomes['+i+'].startYr=+this.value;renderEI()">';
+    h+='</div>';
+    // duration
+    h+='<div style="display:flex;align-items:center;justify-content:space-between">';
+    h+='<div style="font-size:12px;color:var(--t2)">Duration (years)</div>';
+    h+='<input type="number" value="'+e.duration+'" step="1" min="1" max="60" style="width:105px;font-size:12px;padding:6px 10px;background:var(--bg3);border:1px solid var(--b1);border-radius:8px;color:var(--t1);font-family:var(--mono);text-align:right;outline:none;-webkit-appearance:none" onchange="S.extraIncomes['+i+'].duration=+this.value" oninput="S.extraIncomes['+i+'].duration=+this.value">';
+    h+='</div>';
+    // summary line
+    var startAge=S.fireAge+e.startYr;
+    var endAge=startAge+e.duration-1;
+    var preNote=e.startYr<0?' (starts before retirement)':'';
+    h+='<div style="margin-top:8px;font-size:11px;color:var(--t3)">Age '+startAge+'–'+endAge+preNote+' · €'+(e.monthly*12).toLocaleString()+'/yr</div>';
+    h+='</div>';
+  });
+  list.innerHTML=h;
+}
+function addEI(){
+  S.extraIncomes.push({monthly:500,startYr:0,duration:5});
+  renderEI();
+}
+function delEI(i){
+  S.extraIncomes.splice(i,1);
+  renderEI();
+}
+
 // ── init ──────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', function(){
   wireSliders();
   renderST();
+  renderEI();
+  updatePreNote();
 });
 </script>
 </body>
