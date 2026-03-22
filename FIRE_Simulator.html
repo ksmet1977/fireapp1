@@ -394,8 +394,9 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
     <div class="atabs" id="r-atabs"></div>
     <div class="cw"><canvas id="chart"></canvas></div>
     <div class="leg">
-      <div class="li"><div class="ld" style="height:10px;background:rgba(96,165,250,.15);width:18px;border-radius:2px"></div><span>p10–p90</span></div>
-      <div class="li"><div class="ld" style="height:10px;background:rgba(96,165,250,.28);width:18px;border-radius:2px"></div><span>p25–p75</span></div>
+      <div class="li"><div class="ld" id="leg-ob2" style="height:10px;background:rgba(96,165,250,.07);width:18px;border-radius:2px;border:0.5px solid rgba(96,165,250,.2)"></div><span>p5–p95</span></div>
+      <div class="li"><div class="ld" id="leg-ob" style="height:10px;background:rgba(96,165,250,.15);width:18px;border-radius:2px"></div><span>p10–p90</span></div>
+      <div class="li"><div class="ld" id="leg-ib" style="height:10px;background:rgba(96,165,250,.28);width:18px;border-radius:2px"></div><span>p25–p75</span></div>
       <div class="li"><div class="ld" id="leg-mc" style="background:#60a5fa"></div><span>median</span></div>
       <div class="li"><div class="ld" style="border-bottom:2px dashed #4ade80;background:transparent;width:18px"></div><span>pension</span></div>
     </div>
@@ -831,12 +832,14 @@ function runScen(scenario,N){
     for(var y=0;y<=YRS;y++){
       for(var s=0;s<N;s++) tmp[s]=sims[s].pv[y]||0;
       tmp.sort();
+      var p5 =tmp[Math.min(Math.floor(0.05*(N-1)),N-1)];
       var p10=tmp[Math.min(Math.floor(0.1*(N-1)),N-1)];
       var p25=tmp[Math.min(Math.floor(0.25*(N-1)),N-1)];
       var p50=tmp[Math.min(Math.floor(0.5*(N-1)),N-1)];
       var p75=tmp[Math.min(Math.floor(0.75*(N-1)),N-1)];
       var p90=tmp[Math.min(Math.floor(0.9*(N-1)),N-1)];
-      pc.push({age:S.fireAge+y,p10:p10<0?0:p10,p25:p25<0?0:p25,p50:p50<0?0:p50,p75:p75<0?0:p75,p90:p90<0?0:p90});
+      var p95=tmp[Math.min(Math.floor(0.95*(N-1)),N-1)];
+      pc.push({age:S.fireAge+y,p5:p5<0?0:p5,p10:p10<0?0:p10,p25:p25<0?0:p25,p50:p50<0?0:p50,p75:p75<0?0:p75,p90:p90<0?0:p90,p95:p95<0?0:p95});
     }
     var fab={};
     for(var s=0;s<N;s++){if(sims[s].failAge)fab[sims[s].failAge]=(fab[sims[s].failAge]||0)+1;}
@@ -916,12 +919,18 @@ function drawResults(){
 
   var isStag=S.curScen==='stagflation';
   var mc=isStag?'#f87171':'#60a5fa';
+  var ob2=isStag?'rgba(248,113,113,.06)':'rgba(96,165,250,.06)';
   var ob=isStag?'rgba(248,113,113,.12)':'rgba(96,165,250,.12)';
   var ib=isStag?'rgba(248,113,113,.26)':'rgba(96,165,250,.26)';
   g('leg-mc').style.background=mc;
+  var ob2el=g('leg-ob2'); if(ob2el){ob2el.style.background=ob2;ob2el.style.borderColor=isStag?'rgba(248,113,113,.3)':'rgba(96,165,250,.3)';}
+  var obel=g('leg-ob'); if(obel) obel.style.background=ob;
+  var ibel=g('leg-ib'); if(ibel) ibel.style.background=ib;
 
   var ages=r.pc.map(function(p){return p.age;});
   var ds=[
+    {data:r.pc.map(function(p){return p.p95;}),borderWidth:0,pointRadius:0,fill:'+1',backgroundColor:ob2,tension:.12},
+    {data:r.pc.map(function(p){return p.p5;}),borderWidth:0,pointRadius:0,fill:false,tension:.12},
     {data:r.pc.map(function(p){return p.p90;}),borderWidth:0,pointRadius:0,fill:'+1',backgroundColor:ob,tension:.12},
     {data:r.pc.map(function(p){return p.p10;}),borderWidth:0,pointRadius:0,fill:false,tension:.12},
     {data:r.pc.map(function(p){return p.p75;}),borderWidth:0,pointRadius:0,fill:'+1',backgroundColor:ib,tension:.12},
