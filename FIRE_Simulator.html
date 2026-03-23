@@ -306,6 +306,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
   <button class="stab" id="sct-crash" onclick="showPanel('pcrash');scenTabOn('sct-crash')">Early crash</button>
   <button class="stab" id="sct-dep" onclick="showPanel('pdep');scenTabOn('sct-dep')">1929</button>
   <button class="stab rs" id="sct-stag" onclick="showPanel('pstag');scenTabOn('sct-stag')">Stagflation + 1929</button>
+  <button class="stab" id="sct-ai" onclick="showPanel('pai');scenTabOn('sct-ai')" style="color:var(--am)">AI bubble</button>
 </div>
 
 <div id="pbase">
@@ -314,8 +315,8 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
     <div class="card">
       <div class="row">
         <div class="rlbl">ETF mean return<small>nominal annual</small></div>
-        <input type="range" id="sl-em" min="2" max="15" step="0.5" value="7">
-        <div class="rval" id="vl-em">7%</div>
+        <input type="range" id="sl-em" min="2" max="15" step="0.5" value="6">
+        <div class="rval" id="vl-em">6%</div>
       </div>
       <div class="row">
         <div class="rlbl">ETF std deviation<small>volatility</small></div>
@@ -324,8 +325,8 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
       </div>
       <div class="row">
         <div class="rlbl">Inflation mean</div>
-        <input type="range" id="sl-im" min="0" max="8" step="0.25" value="3">
-        <div class="rval" id="vl-im">3%</div>
+        <input type="range" id="sl-im" min="0" max="8" step="0.25" value="3.5">
+        <div class="rval" id="vl-im">3.5%</div>
       </div>
       <div class="row">
         <div class="rlbl">Inflation std dev</div>
@@ -392,6 +393,34 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
   </div>
 </div>
 
+
+<div id="pai" style="display:none">
+  <div class="sec">
+    <div class="stit" style="color:var(--am)">AI bubble (dot-com style)</div>
+    <div class="card">
+      <div class="note" style="padding:12px 16px 8px">Models a 2000-style tech/AI valuation correction. ETF falls over several years as AI valuations mean-revert, then gradually recovers. Inflation stays mild — this is an asset price correction, not a supply shock. Bonds benefit as safe haven. Counts from current age.</div>
+      <div class="row">
+        <div class="rlbl">Crash depth<small>total ETF fall peak to trough</small></div>
+        <input type="range" id="sl-aid" min="-70" max="-10" step="5" value="-40">
+        <div class="rval" id="vl-aid">-40%</div>
+      </div>
+      <div class="row">
+        <div class="rlbl">Crash duration<small>years to reach trough</small></div>
+        <input type="range" id="sl-aiy" min="1" max="5" step="1" value="3">
+        <div class="rval" id="vl-aiy">3 yr</div>
+      </div>
+      <div class="row">
+        <div class="rlbl">Recovery years<small>years to regain lost ground</small></div>
+        <input type="range" id="sl-air" min="2" max="12" step="1" value="7">
+        <div class="rval" id="vl-air">7 yr</div>
+      </div>
+      <div style="background:var(--bg3);margin:0 16px 14px;border-radius:8px;padding:10px 12px">
+        <div style="font-size:11px;color:var(--t3);line-height:1.6">2000–2003 reference: MSCI World −50% over 3 years, recovered in 7 years. This scenario is calibrated for the current environment: unlike 2000, the Fed cannot cut aggressively (sticky inflation + $39T debt). Recovery is therefore slower and inflation stays elevated (~3–4%) even during the correction. Bonds rally only modestly. Default −40% reflects higher index concentration in top AI names than dot-com era.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="gap"></div>
 </div>
 
@@ -414,6 +443,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
       <button class="stab" id="rs-early_crash" data-s="early_crash" onclick="setRS(this)">Early crash</button>
       <button class="stab" id="rs-depression" data-s="depression" onclick="setRS(this)">1929</button>
       <button class="stab rs" id="rs-stagflation" data-s="stagflation" onclick="setRS(this)">Stagflation</button>
+      <button class="stab" id="rs-ai_bubble" data-s="ai_bubble" onclick="setRS(this)" style="border-color:var(--am);color:var(--am)">AI bubble</button>
     </div>
     <div class="atabs" id="r-atabs"></div>
     <div class="cw"><canvas id="chart"></canvas></div>
@@ -445,8 +475,8 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
   <div class="stit">ETF returns</div>
   <div class="card">
     <div style="padding:14px 16px">
-      <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">7% mean nominal return, 16% std deviation</div>
-      <div style="font-size:12px;color:var(--t2);line-height:1.7">The long-run MSCI World / IWDA nominal average (1970–2024) is ~10–11%, but this includes an exceptional post-2008 bull run driven by zero interest rates. Forward-looking estimates are more conservative for several reasons: rate normalisation, geopolitical fragmentation (US-China rivalry, BRICS realignment), deglobalisation pressures, demographic headwinds in Western markets, and energy transition costs. Ray Dalio's framework (Big Debt Cycle, Changing World Order) suggests 4–5% real returns over the next decade for a diversified global portfolio as the US-led global order transitions. Mainstream academic estimates for global equities: 6–8% nominal. The 7% default sits between the optimistic historical average and the Dalio bear case — conservative enough to account for the current geopolitical environment without assuming a full crisis (which is already covered by the Stagflation + 1929 scenario). The 1970s lost decade returned ~4% nominal; the 2000–2010 lost decade ~0%; post-2008 bull run ~14%. Sources: MSCI World index data 1970–2024; Dalio (2021) "The Changing World Order"; Vanguard Capital Markets Model 2024; Dimson, Marsh &amp; Staunton "Global Investment Returns Yearbook".</div>
+      <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">6% mean nominal return, 16% std deviation</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7">The long-run MSCI World / IWDA nominal average (1970–2024) is ~10–11%, but this includes an exceptional post-2008 bull run driven by zero interest rates. The baseline is set at 6% (reduced from the historical average) to reflect the current structural headwinds: (1) the US fiscal trap — $39T debt means the Fed has limited room to cut rates in a downturn, capping the P/E expansion that drove post-2008 returns; (2) AI bubble risk — the top 5 tech names are 15–18% of the index at 2000-era valuations, creating meaningful concentration risk; (3) financial repression — the likely resolution path for US debt involves holding real yields negative, which historically produces mediocre nominal equity returns; (4) deglobalisation drag — the disinflationary tailwind from cheap global manufacturing is reversing. Sources: MSCI World index data 1970–2024; Dalio (2021) "The Changing World Order"; Vanguard Capital Markets Model 2024; Dimson, Marsh &amp; Staunton "Global Investment Returns Yearbook"; CBO Budget Outlook 2026.</div>
     </div>
   </div>
 </div>
@@ -456,7 +486,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
   <div class="card">
     <div style="padding:14px 16px">
       <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">0% nominal — loses real value at inflation rate</div>
-      <div style="font-size:12px;color:var(--t2);line-height:1.7">Belgian savings accounts have historically yielded 0.11–1.75% nominal in the post-2015 low-rate environment. Modelled as 0% to be conservative and reflect that cash held outside high-yield savings earns effectively nothing in real terms. At 2.5% inflation, €665k in cash loses ~€140k of real value over 10 years. No bonds are modelled — this reflects the actual portfolio composition.</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7">Belgian savings accounts have historically yielded 0.11–1.75% nominal in the post-2015 low-rate environment. Modelled as 0% to be conservative and reflect that cash held outside high-yield savings earns effectively nothing in real terms. At 3.5% inflation (the baseline assumption), €665k in cash loses ~€200k of real value over 10 years. If you hold cash in a savings account earning 1–2%, adjust the cash return slider accordingly — but note that savings account rates lag inflation and are not guaranteed. Sources: NBB savings rate statistics, Belgian banking federation.</div>
     </div>
   </div>
 </div>
@@ -465,8 +495,11 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
   <div class="stit">Inflation</div>
   <div class="card">
     <div style="padding:14px 16px">
-      <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">3% mean, 1% std deviation, floor −1%</div>
-      <div style="font-size:12px;color:var(--t2);line-height:1.7">Belgian CPI averaged ~2.2% from 2000–2019 and spiked to 10%+ in 2022. The 3% default reflects a more cautious forward assumption than the ECB's 2% target: structural inflation drivers including energy transition costs, deglobalisation (tariffs raising import prices), ageing population pressures on healthcare and wages, and persistent Belgian wage indexation all suggest inflation is likely to run above the pre-2020 average. The 1% standard deviation reflects normal year-to-year variation. The −1% floor prevents deflationary spirals outside the depression scenario. Source: Statbel Belgian CPI data, ECB inflation targets, NBB economic outlook.</div>
+      <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">3.5% mean, 1% std deviation, floor −1%</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7">Belgian CPI averaged ~2.2% from 2000–2019 and spiked to 10%+ in 2022. The 3.5% default is set above the ECB's 2% target for the following reasons:<br><br>
+<strong style="color:var(--t1)">Structural drivers keeping inflation elevated:</strong> (1) Belgian automatic wage indexation means CPI mechanically feeds into wages and then back into services prices — Belgium has one of the strongest wage-price spiral mechanisms in Europe; (2) energy transition costs (grid upgrades, green levies) are being passed to consumers via energy bills; (3) deglobalisation and tariffs are reversing 30 years of cheap import deflation; (4) ageing population increases healthcare and care costs faster than general CPI.<br><br>
+<strong style="color:var(--t1)">The US fiscal repression channel:</strong> If the US resolves its $39T debt problem through financial repression (holding real yields negative by letting inflation run 3–5%), dollar weakness exports inflation globally. Belgium imports in dollars for energy and many commodities — dollar debasement is partially Belgian inflation.<br><br>
+The 1% standard deviation reflects normal year-to-year variation around the mean. The −1% floor prevents deflationary spirals outside the dedicated depression scenario. Sources: Statbel Belgian CPI data, NBB wage indexation data, ECB inflation targets, IMF World Economic Outlook 2025.</div>
     </div>
   </div>
 </div>
@@ -515,6 +548,33 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
     <div style="padding:14px 16px">
       <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">Liquid portfolio reaches zero AND land already sold</div>
       <div style="font-size:12px;color:var(--t2);line-height:1.7">A simulation path is counted as "failed" only when both the liquid portfolio (ETF + cash) hits zero and the land has already been sold and spent. This means the land sale acts as a mandatory last-resort rescue — failure only occurs if even the land proceeds are exhausted. This is a conservative and realistic definition: it assumes land can always be sold, which may not hold in severe economic conditions. Home equity (50%) is excluded entirely as an additional unlisted buffer.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="stit">AI bubble scenario — calibration</div>
+  <div class="card">
+    <div style="padding:14px 16px">
+      <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">−40% crash over 3 years, 7-year recovery, inflation stays elevated</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7">The AI bubble scenario is modelled as a dot-com style valuation correction, but calibrated for the current macro environment rather than the 2000–2003 precedent.<br><br>
+<strong style="color:var(--t1)">Why −40% (not the 2000 Nasdaq −78%):</strong> IWDA/WEBN are diversified global indices — energy, healthcare, financials, and non-tech industrials buffer the tech collapse. In 2000–2003 MSCI World fell ~50%; with today's higher tech concentration (15–18% vs ~10% in 2000) but broader global exposure, −40% is a reasonable central estimate. Adjustable down to −70% for a Nasdaq-level scenario.<br><br>
+<strong style="color:var(--t1)">Why 7-year recovery (not 5):</strong> In 2000–2003, the Fed cut rates from 6.5% to 1% — the most aggressive easing in decades — which reflated asset prices. Today the Fed starts from ~4.5% and faces: (a) sticky inflation of 3–4% making aggressive cuts politically difficult; (b) $39T debt meaning long-term bond yields may not fall even if the Fed cuts short rates; (c) a bond market that is already pricing significant US fiscal risk. Without the same rate-cutting rocket fuel, equity recovery grinds rather than bounces.<br><br>
+<strong style="color:var(--t1)">Why inflation stays at ~3% during the crash:</strong> In 2000–2003, inflation fell to ~1.5% during the recession, giving the Fed room to cut. Today, deglobalisation, wage indexation, and energy transition costs create an inflation floor — prices are sticky downward. This limits the Fed's cutting ability and slows recovery.<br><br>
+<strong style="color:var(--t1)">Bond behaviour:</strong> Bonds rally modestly (+2% above normal) rather than strongly as in 2000 (+5–6%). The US Treasury market faces its own headwinds: record supply from deficit spending, foreign central banks diversifying away from dollars, and term premium repricing. The flight-to-safety effect is real but dampened. Sources: Fed funds rate history; MSCI World 2000–2003; CBO Debt Projections; Dalio (2021).</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="stit">Fiscal trap and bond/cash assumptions</div>
+  <div class="card">
+    <div style="padding:14px 16px">
+      <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">Why bonds earn modest real returns and cash loses real value</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7">Both the bond (3.5% default return) and cash (0% default) assumptions are influenced by the US fiscal trap dynamic, which is the dominant macro force for the next decade.<br><br>
+<strong style="color:var(--t1)">The fiscal trap in brief:</strong> The US pays ~$970B/year in interest on $39T of debt. Half of all outstanding debt matures by 2026 and must be refinanced at current rates. This creates a trilemma: (1) hike rates → debt spiral accelerates, banking system stressed; (2) cut rates → bond market vigilantes demand higher yields to compensate for inflation risk, long rates rise even if short rates fall; (3) print money → inflation, but with weaker global dollar absorption now than in 2008–2020. The most likely resolution is financial repression: holding nominal rates below inflation for an extended period, slowly eroding debt in real terms.<br><br>
+<strong style="color:var(--t1)">Implications for bonds:</strong> Financial repression is structurally bad for bond holders — you receive a nominal coupon but lose real purchasing power. The 30% Belgian roerende voorheffing on bond income means you also pay tax on nominal gains that may be real losses. Belgian government bonds are partially insulated from US dynamics (ECB has its own mandate and Belgium's debt is high but manageable), but global rate dynamics set the floor.<br><br>
+<strong style="color:var(--t1)">Implications for cash:</strong> At 3.5% inflation and 0% nominal return, cash loses 3.5% real value per year. On €500k of cash over 10 years, this is ~€150k of real purchasing power destroyed — silently, without any single dramatic event. This is the primary argument for holding more ETF and less cash in a FIRE portfolio despite the volatility trade-off. Sources: US Treasury interest payment data; CBO Budget Outlook 2026; NBB Belgian government debt statistics; ECB monetary policy framework.</div>
     </div>
   </div>
 </div>
@@ -572,7 +632,7 @@ var S={
   landValue:400000, landApp:2.5, landTrigger:150000,
   expenses:33000, pension:2200, pensionAge:67,
 
-  etfMean:7, etfStd:16, inflMean:3, inflStd:1,
+  etfMean:6, etfStd:16, inflMean:3.5, inflStd:1,
   crashY1:-40, crashY2:-20, depScale:1,
   endAge:100, failThresh:10,
   cgTax:10, cgExemption:10000, bondTax:30,
@@ -584,12 +644,13 @@ var S={
     {etr:.03,inf:.06},{etr:.05,inf:.05},{etr:.07,inf:.04},
     {etr:.07,inf:.035},{etr:.09,inf:.03},{etr:.09,inf:.028}
   ],
+  aiCrashDepth:-40, aiCrashYears:3, aiRecoveryYears:7,
   results:null, curScen:'baseline', curAllocIdx:1
 };
 var ALLOCS=[.30,.40,.50];
 var ALLOCLBLS=['30% ETF','40% ETF','50% ETF'];
-var SCENKEYS=['baseline','early_crash','depression','stagflation'];
-var SCENLBLS={baseline:'Baseline',early_crash:'Early crash',depression:'1929 depression',stagflation:'Stagflation + 1929'};
+var SCENKEYS=['baseline','early_crash','depression','stagflation','ai_bubble'];
+var SCENLBLS={baseline:'Baseline',early_crash:'Early crash',depression:'1929 depression',stagflation:'Stagflation + 1929',ai_bubble:'AI bubble (dot-com)'};
 
 function buildAllocs(){
   var custom=Math.round(S.etfPct);
@@ -623,13 +684,13 @@ function goS(name, btnId){
 
 // ── scenario panels ───────────────────────────────────────
 function showPanel(pid){
-  ['pbase','pcrash','pdep','pstag'].forEach(function(p){
+  ['pbase','pcrash','pdep','pstag','pai'].forEach(function(p){
     var el=g(p); if(el) el.style.display='none';
   });
   var t=g(pid); if(t) t.style.display='block';
 }
 function scenTabOn(activeId){
-  ['sct-base','sct-crash','sct-dep','sct-stag'].forEach(function(id){
+  ['sct-base','sct-crash','sct-dep','sct-stag','sct-ai'].forEach(function(id){
     var el=g(id); if(el) el.classList.remove('on');
   });
   var a=g(activeId); if(a) a.classList.add('on');
@@ -711,6 +772,9 @@ function wireSliders(){
   sl('sl-c1','vl-c1', function(v){S.crashY1=v;}, function(v){return v+'%';});
   sl('sl-c2','vl-c2', function(v){S.crashY2=v;}, function(v){return v+'%';});
   sl('sl-di','vl-di', function(v){S.depScale=v;}, function(v){return Math.round(v*100)+'%';});
+  sl('sl-aid','vl-aid', function(v){S.aiCrashDepth=v;}, function(v){return v+'%';});
+  sl('sl-aiy','vl-aiy', function(v){S.aiCrashYears=v;}, function(v){return v+' yr';});
+  sl('sl-air','vl-air', function(v){S.aiRecoveryYears=v;}, function(v){return v+' yr';});
 
   sl('sl-ea','vl-ea', function(v){S.endAge=v;}, function(v){return v;});
   sl('sl-cgt','vl-cgt', function(v){S.cgTax=v;}, function(v){return v+'%';});
@@ -779,6 +843,26 @@ function genPaths(scenario,N){
         inf=t<4?-.015+rn()*.015:Math.max(-.01,im+rn()*is);
         er=t<depr.length?depr[t]+rn()*.04:em+rn()*es;
         stagInf=inf; br=t<4?0.02+rn()*0.03:bm+rn()*bs;
+      } else if(scenario==='ai_bubble'){
+        // AI/dot-com: gradual crash over aiCrashYears, recovery over aiRecoveryYears
+        // Inflation stays near normal — pure valuation correction, not supply shock
+        var acd=S.aiCrashDepth/100; // e.g. -0.35
+        var acy=S.aiCrashYears;
+        var ary=S.aiRecoveryYears;
+        var annualCrash=Math.pow(1+acd,1/acy)-1; // annualised crash rate
+        var annualRecover=Math.pow(1/(1+acd),1/ary)-1; // annualised recovery rate
+        if(t<acy){
+          er=annualCrash+rn()*0.08; // falling with noise
+          br=0.02+rn()*0.02;        // bonds modest benefit - Fed can't cut as freely
+        } else if(t<acy+ary){
+          er=annualRecover+rn()*0.1; // recovering with noise
+          br=bm+rn()*bs;
+        } else {
+          er=em+rn()*es;
+          br=bm+rn()*bs;
+        }
+        inf=Math.max(.01,im*0.9+rn()*is); // inflation stays sticky - Fed constrained
+        stagInf=inf;
       } else {
         inf=Math.max(-.01,im+rn()*is);
         er=em+rn()*es; stagInf=inf; br=bm+rn()*bs;
@@ -963,8 +1047,9 @@ async function runAll(){
   S.results={};
   for(var i=0;i<SCENKEYS.length;i++){
     var sc=SCENKEYS[i];
-    g('ov-msg').textContent=SCENLBLS[sc]+'… ('+(i+1)+'/4)';
-    g('pf').style.width=(i/4*100)+'%';
+    var nsc=SCENKEYS.length;
+    g('ov-msg').textContent=SCENLBLS[sc]+'… ('+(i+1)+'/'+nsc+')';
+    g('pf').style.width=(i/nsc*100)+'%';
     await new Promise(function(r){setTimeout(r,20);});
     S.results[sc]=runScen(sc,S.N);
   }
@@ -1010,14 +1095,15 @@ function drawResults(){
   g('rv-p67').textContent=fm(r.p67);
   g('rv-p85').textContent=fm(r.p85);
 
-  var bmap={baseline:'ba',early_crash:'cr',depression:'dp',stagflation:'st'};
+  var bmap={baseline:'ba',early_crash:'cr',depression:'dp',stagflation:'st',ai_bubble:'cr'};
   g('scen-lbl').innerHTML='<div class="sbadge '+bmap[S.curScen]+'">'+SCENLBLS[S.curScen]+' · '+ALLOCLBLS[S.curAllocIdx]+'</div>';
 
   var isStag=S.curScen==='stagflation';
-  var mc=isStag?'#f87171':'#60a5fa';
-  var ob2=isStag?'rgba(248,113,113,.06)':'rgba(96,165,250,.06)';
-  var ob=isStag?'rgba(248,113,113,.12)':'rgba(96,165,250,.12)';
-  var ib=isStag?'rgba(248,113,113,.26)':'rgba(96,165,250,.26)';
+  var isAI=S.curScen==='ai_bubble';
+  var mc=isStag?'#f87171':isAI?'#fbbf24':'#60a5fa';
+  var ob2=isStag?'rgba(248,113,113,.06)':isAI?'rgba(251,191,36,.06)':'rgba(96,165,250,.06)';
+  var ob=isStag?'rgba(248,113,113,.12)':isAI?'rgba(251,191,36,.12)':'rgba(96,165,250,.12)';
+  var ib=isStag?'rgba(248,113,113,.26)':isAI?'rgba(251,191,36,.26)':'rgba(96,165,250,.26)';
   g('leg-mc').style.background=mc;
   var ob2el=g('leg-ob2'); if(ob2el){ob2el.style.background=ob2;ob2el.style.borderColor=isStag?'rgba(248,113,113,.3)':'rgba(96,165,250,.3)';}
   var obel=g('leg-ob'); if(obel) obel.style.background=ob;
@@ -1070,7 +1156,7 @@ function drawResults(){
       var isSelected=sc===S.curScen&&i===S.curAllocIdx;
       var rowCls=(isCustom||isSelected)?' class="hl"':'';
       h+='<tr'+rowCls+'>';
-      if(i===0) h+='<td rowspan="'+ALLOCS.length+'" style="font-weight:600;vertical-align:middle'+(sc==='stagflation'?';color:var(--rd)':'')+'">'+SCENLBLS[sc]+'</td>';
+      if(i===0) h+='<td rowspan="'+ALLOCS.length+'" style="font-weight:600;vertical-align:middle'+(sc==='stagflation'?';color:var(--rd)':sc==='ai_bubble'?';color:var(--am)':'')+'">'+SCENLBLS[sc]+'</td>';
       h+='<td style="font-family:var(--mono);font-size:10px'+(isCustom?';color:var(--te);font-weight:600':'')+'">'+ALLOCLBLS[i]+'</td>';
       h+=('<td>'+fbg(r.fr)+'</td>');
       h+=('<td style="font-family:var(--mono);font-size:10px">'+fm(r.p67)+'</td>');
