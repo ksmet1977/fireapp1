@@ -250,7 +250,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
       <div class="rval" id="vl-cgt">10%</div>
     </div>
     <div class="row">
-      <div class="rlbl">Annual vrijstelling<small>gain exempt from tax per year</small></div>
+      <div class="rlbl">Annual exemption<small>gain exempt from tax per year</small></div>
       <input type="number" id="ni-cgv" value="10000" step="500">
     </div>
     <div class="row">
@@ -259,7 +259,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
       <div class="rval" id="vl-bgt">30%</div>
     </div>
     <div class="row">
-      <div class="rlbl" style="font-size:11px;color:var(--t3)">ETF: only gains above vrijstelling are taxed. Bonds: all returns taxed at flat rate (Belgian roerende voorheffing). Set to 0% to disable.</div>
+      <div class="rlbl" style="font-size:11px;color:var(--t3)">ETF: only gains above exemption are taxed. Bonds: all returns taxed at flat rate (Belgian roerende voorheffing). Set to 0% to disable.</div>
     </div>
   </div>
 </div>
@@ -575,7 +575,7 @@ var S={
   etfMean:7, etfStd:16, inflMean:3, inflStd:1,
   crashY1:-40, crashY2:-20, depScale:1,
   endAge:100, failThresh:10,
-  cgTax:10, cgVrijstelling:10000, bondTax:30,
+  cgTax:10, cgExemption:10000, bondTax:30,
   extraIncomes:[],
   N:5000,
   stagPath:[
@@ -714,7 +714,7 @@ function wireSliders(){
 
   sl('sl-ea','vl-ea', function(v){S.endAge=v;}, function(v){return v;});
   sl('sl-cgt','vl-cgt', function(v){S.cgTax=v;}, function(v){return v+'%';});
-  ni('ni-cgv', function(v){S.cgVrijstelling=v;});
+  ni('ni-cgv', function(v){S.cgExemption=v;});
   sl('sl-bgt','vl-bgt', function(v){S.bondTax=v;}, function(v){return v+'%';});
   sl('sl-ft','vl-ft', function(v){S.failThresh=v;}, function(v){return v+'%';});
 
@@ -804,7 +804,7 @@ function simPath(path,preYears,postYears,etfF){
   var ci=1;
   var lapp=S.landApp/100;
   var sal12=S.salary*12,pen12=S.pension*12,exp=S.expenses;
-  var cgRate=S.cgTax/100,cgVrij=S.cgVrijstelling;
+  var cgRate=S.cgTax/100,cgEx=S.cgExemption;
   var ei,e,amount,gain,tax;
 
   for(var t=0;t<TOTAL;t++){
@@ -841,12 +841,12 @@ function simPath(path,preYears,postYears,etfF){
           if(bonds>=amount){bonds-=amount;}
           else{
             amount-=bonds;bonds=0;
-            // CGT on ETF sale during pre-retirement (use annual vrijstelling)
+            // CGT on ETF sale during pre-retirement (use annual exemption)
             if(etf>0&&etfCostBasis>0){
               var sellFrac=Math.min(1,amount/etf);
               gain=(etf-etfCostBasis)*sellFrac;
               if(gain>0&&cgRate>0){
-                tax=Math.max(0,gain-cgVrij)*cgRate;
+                tax=Math.max(0,gain-cgEx)*cgRate;
                 cash-=tax; if(cash<0){etf+=cash;cash=0;}
               }
               etfCostBasis*=(1-sellFrac);
@@ -876,7 +876,7 @@ function simPath(path,preYears,postYears,etfF){
               var sfrac=etfSell/etf;
               gain=(etf-etfCostBasis)*sfrac;
               if(gain>0){
-                tax=Math.max(0,gain-cgVrij)*cgRate;
+                tax=Math.max(0,gain-cgEx)*cgRate;
                 // Tax paid from cash; if cash insufficient, sell more ETF
                 if(tax>0){
                   if(cash>=tax){cash-=tax;}
@@ -886,7 +886,7 @@ function simPath(path,preYears,postYears,etfF){
                     // recalculate tax on total sell
                     sfrac=etfSell/etf;
                     gain=(etf-etfCostBasis)*sfrac;
-                    tax=Math.max(0,gain-cgVrij)*cgRate;
+                    tax=Math.max(0,gain-cgEx)*cgRate;
                     cash=Math.max(0,cash-tax);
                   }
                 }
