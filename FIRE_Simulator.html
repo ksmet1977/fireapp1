@@ -210,8 +210,8 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
     </div>
     <div class="row">
       <div class="rlbl">Appreciation<small>nominal %/yr base rate</small></div>
-      <input type="range" id="sl-la" min="1" max="10" step="0.5" value="3">
-      <div class="rval" id="vl-la">3%</div>
+      <input type="range" id="sl-la" min="0" max="10" step="0.5" value="2.5">
+      <div class="rval" id="vl-la">2.5%</div>
     </div>
     <div class="row">
       <div class="rlbl">Sell trigger<small>liquid portfolio floor</small></div>
@@ -451,8 +451,8 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
   <div class="stit">Land / real estate</div>
   <div class="card">
     <div style="padding:14px 16px">
-      <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">Conservative 3% nominal appreciation base rate</div>
-      <div style="font-size:12px;color:var(--t2);line-height:1.7">Belgian bouwgrond (building land) in East Flanders has appreciated at 3.5–5% nominal per year over 2010–2023. The 3% default reflects a conservative choice. Source: Statbel vastgoedstatistieken, Notarisbarometer 2023.</div>
+      <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">Conservative 2.5% nominal appreciation base rate</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7">Belgian bouwgrond (building land) in East Flanders has appreciated at 2–5% nominal per year over 2010–2023. The 2.5% default reflects a conservative mid-point. Source: Statbel vastgoedstatistieken, Notarisbarometer 2023.</div>
       <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--b1)">
         <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">+40% of CPI as additional appreciation during stagflation</div>
         <div style="font-size:12px;color:var(--t2);line-height:1.7">Real estate prices historically show partial pass-through of inflation — property is a real asset and tends to rise with general price levels, but with a lag and only partially. The 40% figure means that at 8% CPI, land gains an extra ~3.2% on top of the base rate. This is based on academic research into Belgian and European real estate inflation beta, which typically ranges from 30–60% for residential land over 5-year horizons. Sources: Geltner et al. "Real Estate Finance and Investments" (2014); De Wit & Van Dijk (2003) "The Global Determinants of Real Estate Returns."</div>
@@ -545,7 +545,7 @@ var S={
   bondsOn:false, bondPct:20, bondMean:3.5, bondStd:6,
   cashReturn:0,
   salary:4300,
-  landValue:400000, landApp:3, landTrigger:150000,
+  landValue:400000, landApp:2.5, landTrigger:150000,
   expenses:33000, pension:2200, pensionAge:67,
 
   etfMean:8, etfStd:16, inflMean:2.5, inflStd:1,
