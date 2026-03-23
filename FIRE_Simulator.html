@@ -240,6 +240,30 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
   </div>
 </div>
 
+
+<div class="sec">
+  <div class="stit">Capital gains tax (ETF)</div>
+  <div class="card">
+    <div class="row">
+      <div class="rlbl">CGT rate<small>tax on ETF gains when selling</small></div>
+      <input type="range" id="sl-cgt" min="0" max="50" step="1" value="10">
+      <div class="rval" id="vl-cgt">10%</div>
+    </div>
+    <div class="row">
+      <div class="rlbl">Annual vrijstelling<small>gain exempt from tax per year</small></div>
+      <input type="number" id="ni-cgv" value="10000" step="500">
+    </div>
+    <div class="row">
+      <div class="rlbl">Bond profit tax<small>tax on bond income / gains</small></div>
+      <input type="range" id="sl-bgt" min="0" max="50" step="1" value="30">
+      <div class="rval" id="vl-bgt">30%</div>
+    </div>
+    <div class="row">
+      <div class="rlbl" style="font-size:11px;color:var(--t3)">ETF: only gains above vrijstelling are taxed. Bonds: all returns taxed at flat rate (Belgian roerende voorheffing). Set to 0% to disable.</div>
+    </div>
+  </div>
+</div>
+
 <div class="sec">
   <div class="stit">Additional income streams</div>
   <div class="card" id="ei-card">
@@ -290,8 +314,8 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
     <div class="card">
       <div class="row">
         <div class="rlbl">ETF mean return<small>nominal annual</small></div>
-        <input type="range" id="sl-em" min="2" max="15" step="0.5" value="8">
-        <div class="rval" id="vl-em">8%</div>
+        <input type="range" id="sl-em" min="2" max="15" step="0.5" value="7">
+        <div class="rval" id="vl-em">7%</div>
       </div>
       <div class="row">
         <div class="rlbl">ETF std deviation<small>volatility</small></div>
@@ -300,8 +324,8 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
       </div>
       <div class="row">
         <div class="rlbl">Inflation mean</div>
-        <input type="range" id="sl-im" min="0" max="8" step="0.25" value="2.5">
-        <div class="rval" id="vl-im">2.5%</div>
+        <input type="range" id="sl-im" min="0" max="8" step="0.25" value="3">
+        <div class="rval" id="vl-im">3%</div>
       </div>
       <div class="row">
         <div class="rlbl">Inflation std dev</div>
@@ -404,7 +428,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
       <div class="cmpt">All scenarios × allocations</div>
       <div style="overflow-x:auto">
         <table class="tbl">
-          <thead><tr><th>Scenario</th><th>Alloc</th><th>Fail%</th><th>Med@67</th><th>Med@85</th><th id="th-fthresh">Fail 10%</th></tr></thead>
+          <thead><tr><th>Scenario</th><th>Alloc</th><th>Fail%</th><th>Med@67</th><th>Med@85</th><th id="th-fthresh">Fail 10%</th><th>Land sold</th><th>Med land age</th></tr></thead>
           <tbody id="r-tbody"></tbody>
         </table>
       </div>
@@ -421,8 +445,8 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
   <div class="stit">ETF returns</div>
   <div class="card">
     <div style="padding:14px 16px">
-      <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">8% mean nominal return, 16% std deviation</div>
-      <div style="font-size:12px;color:var(--t2);line-height:1.7">Based on MSCI World / IWDA long-run historical performance. The 8% nominal figure reflects the ~10% historical real return of global equities minus approximately 2% for European inflation context. The 16% standard deviation reflects observed annual volatility of a global index ETF. Source: MSCI World index data 1970–2024, Vanguard global equity research.</div>
+      <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">7% mean nominal return, 16% std deviation</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7">The long-run MSCI World / IWDA nominal average (1970–2024) is ~10–11%, but this includes an exceptional post-2008 bull run driven by zero interest rates. Forward-looking estimates are more conservative for several reasons: rate normalisation, geopolitical fragmentation (US-China rivalry, BRICS realignment), deglobalisation pressures, demographic headwinds in Western markets, and energy transition costs. Ray Dalio's framework (Big Debt Cycle, Changing World Order) suggests 4–5% real returns over the next decade for a diversified global portfolio as the US-led global order transitions. Mainstream academic estimates for global equities: 6–8% nominal. The 7% default sits between the optimistic historical average and the Dalio bear case — conservative enough to account for the current geopolitical environment without assuming a full crisis (which is already covered by the Stagflation + 1929 scenario). The 1970s lost decade returned ~4% nominal; the 2000–2010 lost decade ~0%; post-2008 bull run ~14%. Sources: MSCI World index data 1970–2024; Dalio (2021) "The Changing World Order"; Vanguard Capital Markets Model 2024; Dimson, Marsh &amp; Staunton "Global Investment Returns Yearbook".</div>
     </div>
   </div>
 </div>
@@ -441,8 +465,8 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
   <div class="stit">Inflation</div>
   <div class="card">
     <div style="padding:14px 16px">
-      <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">2.5% mean, 1% std deviation, floor −1%</div>
-      <div style="font-size:12px;color:var(--t2);line-height:1.7">Belgian CPI averaged ~2.2% from 2000–2019 and spiked to 10%+ in 2022. The 2.5% mean reflects the ECB's 2% target plus a small structural premium for Belgian energy and housing costs. The 1% standard deviation reflects normal year-to-year variation. The −1% floor prevents deflationary spirals outside the depression scenario. Source: Statbel Belgian CPI data, ECB inflation targets.</div>
+      <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">3% mean, 1% std deviation, floor −1%</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7">Belgian CPI averaged ~2.2% from 2000–2019 and spiked to 10%+ in 2022. The 3% default reflects a more cautious forward assumption than the ECB's 2% target: structural inflation drivers including energy transition costs, deglobalisation (tariffs raising import prices), ageing population pressures on healthcare and wages, and persistent Belgian wage indexation all suggest inflation is likely to run above the pre-2020 average. The 1% standard deviation reflects normal year-to-year variation. The −1% floor prevents deflationary spirals outside the depression scenario. Source: Statbel Belgian CPI data, ECB inflation targets, NBB economic outlook.</div>
     </div>
   </div>
 </div>
@@ -451,8 +475,8 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px s
   <div class="stit">Land / real estate</div>
   <div class="card">
     <div style="padding:14px 16px">
-      <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">Conservative 2.5% nominal appreciation base rate</div>
-      <div style="font-size:12px;color:var(--t2);line-height:1.7">Belgian bouwgrond (building land) in East Flanders has appreciated at 2–5% nominal per year over 2010–2023. The 2.5% default reflects a conservative mid-point. Source: Statbel vastgoedstatistieken, Notarisbarometer 2023.</div>
+      <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">2.5% nominal appreciation base rate (range 0–10% adjustable)</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7">Belgian bouwgrond (building land) in East Flanders has appreciated at 2–5% nominal per year over 2010–2023, with significant variation depending on location, plot size, and zoning. The slider allows 0% (no appreciation, fully conservative) up to 10%. The 2.5% default reflects a cautious mid-point of the 2–5% observed range, accounting for the possibility that rural land near smaller towns may appreciate more slowly than peri-urban plots, and that the strong 2015–2022 appreciation may not repeat at the same pace. If your land has planning permission or development potential, 4–5% would be more appropriate. Source: Statbel vastgoedstatistieken, Notarisbarometer 2023; CIB Belgium vastgoedbarometer.</div>
       <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--b1)">
         <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px">+40% of CPI as additional appreciation during stagflation</div>
         <div style="font-size:12px;color:var(--t2);line-height:1.7">Real estate prices historically show partial pass-through of inflation — property is a real asset and tends to rise with general price levels, but with a lag and only partially. The 40% figure means that at 8% CPI, land gains an extra ~3.2% on top of the base rate. This is based on academic research into Belgian and European real estate inflation beta, which typically ranges from 30–60% for residential land over 5-year horizons. Sources: Geltner et al. "Real Estate Finance and Investments" (2014); De Wit & Van Dijk (2003) "The Global Determinants of Real Estate Returns."</div>
@@ -548,9 +572,10 @@ var S={
   landValue:400000, landApp:2.5, landTrigger:150000,
   expenses:33000, pension:2200, pensionAge:67,
 
-  etfMean:8, etfStd:16, inflMean:2.5, inflStd:1,
+  etfMean:7, etfStd:16, inflMean:3, inflStd:1,
   crashY1:-40, crashY2:-20, depScale:1,
   endAge:100, failThresh:10,
+  cgTax:10, cgVrijstelling:10000, bondTax:30,
   extraIncomes:[],
   N:5000,
   stagPath:[
@@ -688,6 +713,9 @@ function wireSliders(){
   sl('sl-di','vl-di', function(v){S.depScale=v;}, function(v){return Math.round(v*100)+'%';});
 
   sl('sl-ea','vl-ea', function(v){S.endAge=v;}, function(v){return v;});
+  sl('sl-cgt','vl-cgt', function(v){S.cgTax=v;}, function(v){return v+'%';});
+  ni('ni-cgv', function(v){S.cgVrijstelling=v;});
+  sl('sl-bgt','vl-bgt', function(v){S.bondTax=v;}, function(v){return v+'%';});
   sl('sl-ft','vl-ft', function(v){S.failThresh=v;}, function(v){return v+'%';});
 
   // Number inputs
@@ -766,23 +794,32 @@ function simPath(path,preYears,postYears,etfF){
   var STRIDE=4,TOTAL=preYears+postYears;
   var bondF=getBondFrac(etfF),cashF=getCashPct(etfF);
   var etf=S.portfolio*etfF,bonds=S.portfolio*bondF,cash=S.portfolio*cashF;
-  var land=S.landValue,landSold=false;
+  // Track ETF cost basis for CGT calculation
+  var etfCostBasis=etf;
+  var land=S.landValue,landSold=false,landSaleAge=0;
   var failed=false,failAge=0;
-  // pv[0] = portfolio entering retirement; pv[y+1] = after retirement year y
-  // Total: postYears+1 entries covering ages fireAge..endAge
   var pv=new Float64Array(postYears+1);
   var PY=S.pensionAge-S.fireAge;
   var cr=S.cashReturn/100;
   var ci=1;
   var lapp=S.landApp/100;
   var sal12=S.salary*12,pen12=S.pension*12,exp=S.expenses;
-  var ei,e,amount;
+  var cgRate=S.cgTax/100,cgVrij=S.cgVrijstelling;
+  var ei,e,amount,gain,tax;
+
   for(var t=0;t<TOTAL;t++){
     var b=t*STRIDE;
     var inf=path[b],er=path[b+1],br=path[b+2],stagInf=path[b+3];
     var y=t-preYears;
+    // ETF grows — cost basis stays the same, unrealized gain grows
     etf*=1+er; if(etf<0)etf=0;
+    var bondPrev=bonds;
     bonds*=1+br; if(bonds<0)bonds=0;
+    if(S.bondTax>0&&bonds>bondPrev){
+      var bondGain=bonds-bondPrev;
+      var bondTaxAmt=bondGain*(S.bondTax/100);
+      bonds-=bondTaxAmt;
+    }
     cash*=1+cr;
     if(!landSold) land*=1+lapp+(stagInf>0?stagInf*0.4:0)+rn()*0.012;
     ci*=1+inf;
@@ -792,31 +829,79 @@ function simPath(path,preYears,postYears,etfF){
       e=S.extraIncomes[ei];
       if(y>=e.startYr&&y<e.startYr+e.duration) xInc+=e.monthly*12*ci;
     }
+
     if(y<0){
-      // pre-retirement: salary + extra income vs expenses
       var net=sal12*ci+xInc-exp*ci;
       if(net>=0){cash+=net;}
       else{
         amount=-net;
         if(cash>=amount){cash-=amount;}
-        else{amount-=cash;cash=0;if(bonds>=amount){bonds-=amount;}else{amount-=bonds;bonds=0;etf-=amount;if(etf<0)etf=0;}}
+        else{
+          amount-=cash;cash=0;
+          if(bonds>=amount){bonds-=amount;}
+          else{
+            amount-=bonds;bonds=0;
+            // CGT on ETF sale during pre-retirement (use annual vrijstelling)
+            if(etf>0&&etfCostBasis>0){
+              var sellFrac=Math.min(1,amount/etf);
+              gain=(etf-etfCostBasis)*sellFrac;
+              if(gain>0&&cgRate>0){
+                tax=Math.max(0,gain-cgVrij)*cgRate;
+                cash-=tax; if(cash<0){etf+=cash;cash=0;}
+              }
+              etfCostBasis*=(1-sellFrac);
+            }
+            etf-=amount;if(etf<0)etf=0;
+          }
+        }
       }
-      // record portfolio at the moment retirement begins (after last pre-retirement year)
       if(y===-1) pv[0]=(etf+bonds+cash)+(!landSold?land:0);
     } else {
-      // record portfolio at START of this retirement year (before withdrawals)
-      // pv[0] already set above; if no pre-retirement, set it on y==0 before first withdrawal
       if(y===0&&preYears===0) pv[0]=(etf+bonds+cash)+(!landSold?land:0);
       var wd=exp*ci-pen-xInc; if(wd<0)wd=0;
-      if(!landSold&&(etf+bonds+cash)<S.landTrigger&&land>0){cash+=land;land=0;landSold=true;}
+      if(!landSold&&(etf+bonds+cash)<S.landTrigger&&land>0){
+        cash+=land;land=0;landSold=true;landSaleAge=S.fireAge+y;
+      }
+      // Draw: cash first, then bonds, then ETF (with CGT on ETF portion)
       if(cash>=wd){cash-=wd;}
-      else{amount=wd-cash;cash=0;if(bonds>=amount){bonds-=amount;}else{amount-=bonds;bonds=0;etf-=amount;if(etf<0)etf=0;}}
+      else{
+        amount=wd-cash;cash=0;
+        if(bonds>=amount){bonds-=amount;}
+        else{
+          amount-=bonds;bonds=0;
+          // Sell ETF: apply CGT on gain portion
+          if(etf>0&&amount>0){
+            var etfSell=Math.min(amount,etf);
+            if(etfCostBasis>0&&cgRate>0){
+              var sfrac=etfSell/etf;
+              gain=(etf-etfCostBasis)*sfrac;
+              if(gain>0){
+                tax=Math.max(0,gain-cgVrij)*cgRate;
+                // Tax paid from cash; if cash insufficient, sell more ETF
+                if(tax>0){
+                  if(cash>=tax){cash-=tax;}
+                  else{
+                    var extraSell=Math.min(tax-cash,etf-etfSell);
+                    etfSell+=extraSell;
+                    // recalculate tax on total sell
+                    sfrac=etfSell/etf;
+                    gain=(etf-etfCostBasis)*sfrac;
+                    tax=Math.max(0,gain-cgVrij)*cgRate;
+                    cash=Math.max(0,cash-tax);
+                  }
+                }
+              }
+              etfCostBasis*=(1-sfrac);
+            }
+            etf-=etfSell;if(etf<0)etf=0;
+          }
+        }
+      }
       if(!failed&&(etf+bonds+cash)<=0){failed=true;failAge=S.fireAge+y+1;}
-      // record portfolio at END of this retirement year (pv[y+1])
       if(y+1<=postYears) pv[y+1]=(etf+bonds+cash)+(!landSold?land:0);
     }
   }
-  return{pv:pv,failed:failed,failAge:failAge};
+  return{pv:pv,failed:failed,failAge:failAge,landSaleAge:landSaleAge};
 }
 
 function runScen(scenario,N){
@@ -842,7 +927,16 @@ function runScen(scenario,N){
       pc.push({age:S.fireAge+y,p5:p5<0?0:p5,p10:p10<0?0:p10,p25:p25<0?0:p25,p50:p50<0?0:p50,p75:p75<0?0:p75,p90:p90<0?0:p90,p95:p95<0?0:p95});
     }
     var fab={};
-    for(var s=0;s<N;s++){if(sims[s].failAge)fab[sims[s].failAge]=(fab[sims[s].failAge]||0)+1;}
+    var landSaleAges=[];
+    for(var s=0;s<N;s++){
+      if(sims[s].failAge)fab[sims[s].failAge]=(fab[sims[s].failAge]||0)+1;
+      if(sims[s].landSaleAge>0)landSaleAges.push(sims[s].landSaleAge);
+    }
+    var medLandAge=null;
+    if(landSaleAges.length>0){
+      landSaleAges.sort(function(a,b){return a-b;});
+      medLandAge=landSaleAges[Math.floor(landSaleAges.length/2)];
+    }
     function ffa(q){var c=0;for(var a=S.fireAge;a<=S.endAge;a++){c+=fab[a]||0;if(c/N>=q)return a;}return null;}
     var p67idx=Math.min(S.pensionAge-S.fireAge,YRS);
     var p85idx=Math.min(85-S.fireAge,YRS);
@@ -851,6 +945,8 @@ function runScen(scenario,N){
       fThresh:ffa(thresh),f25:ffa(.25),
       p67:Math.round(pc[p67idx]?pc[p67idx].p50:0),
       p85:Math.round(pc[p85idx]?pc[p85idx].p50:0),
+      landSoldPct:+(landSaleAges.length/N*100).toFixed(1),
+      medLandAge:medLandAge,
       pc:pc};
   });
 }
@@ -980,6 +1076,8 @@ function drawResults(){
       h+=('<td style="font-family:var(--mono);font-size:10px">'+fm(r.p67)+'</td>');
       h+=('<td style="font-family:var(--mono);font-size:10px">'+fm(r.p85)+'</td>');
       h+=('<td style="font-family:var(--mono);font-size:10px">'+(r.fThresh?'age '+r.fThresh:'> '+S.endAge)+'</td>');
+      h+=('<td style="font-family:var(--mono);font-size:10px">'+r.landSoldPct+'%</td>');
+      h+=('<td style="font-family:var(--mono);font-size:10px">'+(r.medLandAge?'age '+r.medLandAge:'—')+'</td>');
       h+='</tr>';
     });
   });
